@@ -1,0 +1,48 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  credits   Int      @default(3)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ppts    PPT[]
+  ratings Rating[]
+}
+
+model PPT {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  theme      String
+  slideCount Int
+  fileUrl    String
+  createdAt  DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  ratings Rating[]
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  userId    String
+  pptId     String
+  score     Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  ppt  PPT  @relation(fields: [pptId], references: [id])
+}

@@ -1,26 +1,109 @@
+/* ① Google Fonts — must be FIRST before any other rules */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
+
+/* ② Tailwind v4 */
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ③ Class-based dark mode — makes dark: variants respond to .dark on <html>, not OS preference */
+@variant dark (&:where(.dark, .dark *));
+
+/* ③ Design tokens via @theme */
+@theme {
+  /* Fonts */
+  --font-sans: "Geist", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Accent (same both modes) */
+  --color-accent-primary: #5b4cf5;
+  --color-accent-hover-dark: #7c6ff7;
+  --color-accent-hover-light: #4335c7;
+  --color-accent-subtle-dark: #1e1a4a;
+  --color-accent-subtle-light: #e8e6fc;
+
+  /* Dark mode backgrounds */
+  --color-dark-bg-primary: #0f0f14;
+  --color-dark-bg-surface: #1a1a28;
+  --color-dark-bg-elevated: #252538;
+
+  /* Dark mode text */
+  --color-dark-text-primary: #ffffff;
+  --color-dark-text-muted: #a0a0b8;
+
+  /* Light mode backgrounds */
+  --color-light-bg-primary: #f7f7ff;
+  --color-light-bg-surface: #ffffff;
+  --color-light-bg-elevated: #ededfc;
+
+  /* Light mode text */
+  --color-light-text-primary: #0f0f14;
+  --color-light-text-muted: #5c5c7a;
+
+  /* Indigo ramp */
+  --color-indigo-50: #eeedfe;
+  --color-indigo-100: #d4d0fb;
+  --color-indigo-200: #a89df6;
+  --color-indigo-300: #7c6ff7;
+  --color-indigo-500: #5b4cf5;
+  --color-indigo-600: #4335c7;
+  --color-indigo-700: #2d228f;
+  --color-indigo-900: #1a1260;
+
+  /* Border radius */
+  --radius-card: 12px;
+  --radius-component: 8px;
+
+  /* Font sizes */
+  --text-2xs: 9px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --text-4xl: 36px;
+  --text-5xl: 40px;
+  --text-hero: 56px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ④ Base layer */
+@layer base {
+  html {
+    font-family: "Geist", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-light-bg-primary);
+    color: var(--color-light-text-primary);
+    transition: background-color 0.2s, color 0.2s;
+    line-height: 1.7;
+  }
+
+  .dark body {
+    background-color: var(--color-dark-bg-primary);
+    color: var(--color-dark-text-primary);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.dark {
+  color-scheme: dark;
+}
+
+/* Theme showcase marquee */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.theme-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.theme-marquee:hover {
+  animation-play-state: paused;
 }
