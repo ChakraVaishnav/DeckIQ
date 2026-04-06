@@ -74,42 +74,54 @@ const THEMES = {
 
 // ─── Content generation ───────────────────────────────────────────────────
 async function generateContent(topic, slideCount) {
-  // 1. Generate a proper presentation title from the user's raw prompt
-  const titleRaw = await callQwen(
-    `The user wants a presentation about: "${topic}"
-Generate a concise, professional presentation title (5-8 words max).
-Return ONLY the title text. No quotes, no punctuation at end.
-Example: "The Rise of AI in Modern Healthcare"`, 60
+  // 1. ONE compressed API call for all presentation metadata and structure
+  const masterRaw = await callQwen(
+    `Create a highly professional presentation outline about "${topic}".
+Output ONLY valid JSON matching this exact structure:
+{
+  "presentationTitle": "Engaging 5-8 word title",
+  "subtitle": "A one-sentence engaging subtitle",
+  "theme": "Pick one: ${THEME_KEYS.join(', ')}",
+  "slideTitles": ["Title 1", "Title 2"], // Generate exactly ${slideCount} strings
+  "conclusionBullets": ["Key takeaway 1", "Key takeaway 2", "Key takeaway 3"] // Exactly 3 takeaway strings
+}`, 800
   )
-  const presentationTitle = titleRaw.replace(/^["']|["']$/g, '').trim() || topic
 
-  // 2. Slide titles
-  const titlesRaw = await callQwen(
-    `Generate exactly ${slideCount} slide titles for a professional presentation titled "${presentationTitle}" about "${topic}".
-Return ONLY a JSON array of strings. No markdown, no explanation.
-Example: ["Introduction", "Key Concepts", "Analysis"]
-Must have exactly ${slideCount} items.`
-  )
-  let titles = parseJsonArray(titlesRaw)
-  if (titles.length !== slideCount) {
-    titles = Array.from({ length: slideCount }, (_, i) => titles[i] || `Section ${i + 1}`)
+  let layoutData = {}
+  try {
+    const match = masterRaw.match(/\{[\s\S]*\}/)
+    layoutData = match ? JSON.parse(match[0]) : {}
+  } catch (err) {
+    console.error('Master layout parse error', err)
   }
 
-  // 3. Subtitle + theme in parallel
-  const [subtitleRaw, themeRaw] = await Promise.all([
-    callQwen(`Write a one-sentence subtitle for a presentation titled "${presentationTitle}". Return ONLY the subtitle, no quotes.`, 80),
-    callQwen(`Pick the best theme for a presentation about "${topic}". Choose from: ${THEME_KEYS.join(', ')}. Return ONLY the theme name.`, 20),
-  ])
+  // Fallbacks in case LLM structure gets slightly corrupted
+  const presentationTitle = layoutData.presentationTitle || topic
+  const subtitle = layoutData.subtitle || `Comprehensive overview of ${topic}`
+  const suggestedTheme = THEME_KEYS.includes(layoutData.theme) ? layoutData.theme : 'minimal_light'
+  
+  let titles = Array.isArray(layoutData.slideTitles) ? layoutData.slideTitles : []
+  if (titles.length !== Number(slideCount)) {
+    titles = Array.from({ length: Number(slideCount) }, (_, i) => titles[i] || `Section ${i + 1}`)
+  }
+  
+  let conclusionData = Array.isArray(layoutData.conclusionBullets) ? layoutData.conclusionBullets : []
+  const conclusionBullets = conclusionData.length >= 3 ? conclusionData.slice(0, 3) : ['Key insights discussed', 'Actionable next steps identified', 'Thank you for your attention']
 
-  const subtitle = subtitleRaw.replace(/^["']|["']$/g, '').trim()
-  const suggestedTheme = THEME_KEYS.find(t => themeRaw.toLowerCase().includes(t)) || 'minimal_light'
-
-  // 4. Bullets for each slide (parallel)
+  // 2. Bullets for each slide generated in parallel (preventing massive token timeouts)
   const slides = await Promise.all(
     titles.map(async (title) => {
       const raw = await callQwen(
-        `Write 5 concise bullet points for a slide titled "${title}" in a presentation about "${topic}".
-Return ONLY a JSON array of 5 strings. Each under 12 words. Be specific and informative.`
+        `Write exactly 5 concise bullet points for a slide titled "${title}" inside a deck about "${presentationTitle}".
+Output MUST be a valid JSON array containing exactly 5 strings. No markdown, no intro text.
+Example:
+[
+  "First point about the topic",
+  "Second informative detail",
+  "Third important concept",
+  "Fourth key consideration",
+  "Fifth concluding point"
+]`
       )
       const bullets = parseJsonArray(raw)
       return {
@@ -118,14 +130,6 @@ Return ONLY a JSON array of 5 strings. Each under 12 words. Be specific and info
       }
     })
   )
-
-  // 5. Conclusion
-  const conclusionRaw = await callQwen(
-    `Write 3 key takeaway bullet points for a presentation on "${topic}" covering: ${titles.join(', ')}.
-Return ONLY a JSON array of 3 strings. Each under 15 words.`, 200
-  )
-  const conclusion = parseJsonArray(conclusionRaw)
-  const conclusionBullets = conclusion.length >= 3 ? conclusion.slice(0, 3) : ['Key insights explored in depth', 'Actionable next steps identified', 'Thank you for your attention']
 
   return { presentationTitle, subtitle, slides, conclusionBullets, suggestedTheme }
 }
