@@ -65,6 +65,12 @@ export default function DashboardNavbar({ onBuyCredits }) {
               </div>
               <div className="py-1">
                 <Link
+                  href="/profile"
+                  className="block px-3 py-2 text-sm text-light-text-muted dark:text-dark-text-muted hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-elevated dark:hover:bg-dark-bg-elevated transition-colors"
+                >
+                  Profile Settings
+                </Link>
+                <Link
                   href="/generations"
                   className="block px-3 py-2 text-sm text-light-text-muted dark:text-dark-text-muted hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-elevated dark:hover:bg-dark-bg-elevated transition-colors"
                 >

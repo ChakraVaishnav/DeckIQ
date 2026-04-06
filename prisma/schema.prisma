@@ -21,6 +21,7 @@ model User {
 
   ppts    PPT[]
   ratings Rating[]
+  otps    Otp[]
 }
 
 model PPT {
@@ -45,4 +46,14 @@ model Rating {
 
   user User @relation(fields: [userId], references: [id])
   ppt  PPT  @relation(fields: [pptId], references: [id])
+}
+
+model Otp {
+  id        String   @id @default(cuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

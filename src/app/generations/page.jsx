@@ -6,6 +6,7 @@ import Link from 'next/link'
 import ProtectedRoute from '@/components/shared/ProtectedRoute'
 import DashboardNavbar from '@/components/Dashboard/DashboardNavbar'
 import GenerationCard from '@/components/Dashboard/GenerationCard'
+import Footer from '@/components/LandingPage/Footer'
 import { useAuth } from '@/context/AuthContext'
 
 const fadeUp = {
@@ -117,6 +118,7 @@ function GenerationsContent() {
           </motion.div>
         )}
       </main>
+      <Footer />
     </div>
   )
 }

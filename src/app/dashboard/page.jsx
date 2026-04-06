@@ -8,14 +8,10 @@ import DashboardNavbar from '@/components/Dashboard/DashboardNavbar'
 import GenerateInput from '@/components/Dashboard/GenerateInput'
 import GenerationCard from '@/components/Dashboard/GenerationCard'
 import BuyCreditsModal from '@/components/Dashboard/BuyCreditsModal'
+import Footer from '@/components/LandingPage/Footer'
 import { useAuth } from '@/context/AuthContext'
 
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
-}
+// Greeting moved to GenerateInput
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -60,40 +56,15 @@ function DashboardContent() {
     <div className="min-h-screen bg-light-bg-primary dark:bg-dark-bg-primary">
       <DashboardNavbar onBuyCredits={() => setShowBuyModal(true)} />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-        {/* Greeting */}
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-medium text-light-text-primary dark:text-dark-text-primary">
-            {getGreeting()}, {user?.username} 👋
-          </h1>
-          <p className="mt-1.5 text-sm text-light-text-muted dark:text-dark-text-muted">
-            {user?.credits > 0 ? (
-              <>You have <span className="text-accent-primary font-medium">{user.credits} credits</span> remaining.</>
-            ) : (
-              <>You have no credits left.{' '}
-                <button onClick={() => setShowBuyModal(true)} className="text-accent-primary hover:underline font-medium">
-                  Buy more →
-                </button>
-              </>
-            )}
-            {user?.credits > 0 && user?.credits < 3 && (
-              <>
-                {' '}<button onClick={() => setShowBuyModal(true)} className="text-accent-primary hover:underline font-medium text-xs">
-                  Buy more
-                </button>
-              </>
-            )}
-          </p>
-        </motion.div>
-
-        {/* Generate Input */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-10" style={{ transitionDelay: '0.1s' }}>
-          <GenerateInput onGenerated={fetchRecent} authFetch={authFetch} />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        {/* Generate Input (now handles 2-column layout and greeting) */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-12">
+          <GenerateInput 
+            user={user} 
+            onBuyCredits={() => setShowBuyModal(true)}
+            onGenerated={fetchRecent} 
+            authFetch={authFetch} 
+          />
         </motion.div>
 
         {/* Recent Generations */}
@@ -154,6 +125,8 @@ function DashboardContent() {
           )}
         </div>
       </main>
+
+      <Footer />
 
       {showBuyModal && (
         <BuyCreditsModal

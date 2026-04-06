@@ -1,111 +1,76 @@
 import Link from 'next/link'
+import Footer from '@/components/LandingPage/Footer'
+import ThemeToggle from '@/components/shared/ThemeToggle'
 
-export const metadata = {
-  title: 'Terms & Conditions — DeckIQ',
-  description: 'Read the Terms & Conditions for using DeckIQ, the AI-powered presentation generator.',
-}
-
-export default function TermsPage() {
+export default function TermsAndConditions() {
   return (
-    <div className="min-h-screen bg-light-bg-primary dark:bg-dark-bg-primary">
-      {/* Minimal Navbar */}
-      <header className="border-b border-light-text-muted/10 dark:border-dark-text-muted/10">
-        <div className="w-full px-6 sm:px-10 lg:px-16 h-16 flex items-center">
-          <Link href="/">
-            <span className="text-xl font-medium text-light-text-primary dark:text-dark-text-primary">
-              Deck<span className="text-accent-primary">IQ</span>
-            </span>
+    <div className="min-h-screen bg-light-bg-primary dark:bg-dark-bg-primary flex flex-col">
+      {/* Simple Header */}
+      <header className="w-full px-6 sm:px-10 lg:px-16 h-16 flex items-center justify-between border-b border-light-text-muted/10 dark:border-dark-text-muted/10">
+        <Link href="/" className="flex items-center gap-2 text-xl font-medium text-light-text-primary dark:text-dark-text-primary">
+          Deck<span className="text-accent-primary">IQ</span>
+        </Link>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <Link href="/" className="text-sm font-medium text-light-text-muted dark:text-dark-text-muted hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors">
+            Back to Home
           </Link>
         </div>
       </header>
 
-      <main className="max-w-[720px] mx-auto px-4 sm:px-6 py-16">
-        <h1 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-          Terms &amp; Conditions
-        </h1>
-        <p className="text-sm text-light-text-muted dark:text-dark-text-muted mb-12">
-          Last updated: April 2025
-        </p>
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-3xl mx-auto px-6 py-16">
+        <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Terms & Conditions</h1>
+        <p className="text-sm text-light-text-muted dark:text-dark-text-muted mb-8">Last updated: June 2025</p>
 
-        <div className="space-y-10 text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+        <div className="space-y-8 text-light-text-primary dark:text-dark-text-primary">
+          
           <section>
-            <h2 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-              1. Acceptance of Terms
-            </h2>
-            <p>
-              By accessing or using DeckIQ (&quot;the Service&quot;), you agree to be bound by these Terms &amp; Conditions. If you do not agree, please do not use the Service. These terms apply to all users, including visitors, registered users, and paying customers.
+            <h2 className="text-xl font-semibold mb-3">1. Acceptance of Terms</h2>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed mb-4">
+              By accessing and using DeckIQ, you agree to be bound by these Terms & Conditions. If you disagree with any part of the terms, then you may not access the service.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-              2. Use of Service
-            </h2>
-            <p>
-              DeckIQ provides AI-powered presentation generation tools. You may use the Service only for lawful purposes and in accordance with these Terms. You agree not to use the Service to create content that is illegal, harmful, defamatory, or violates the rights of others. We reserve the right to suspend or terminate accounts that violate these terms.
+            <h2 className="text-xl font-semibold mb-3">2. Service Usage</h2>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed mb-3">
+              When registering or using our platform, you agree to the following guidelines:
+            </p>
+            <ul className="list-disc pl-5 space-y-2 text-sm text-light-text-muted dark:text-dark-text-muted">
+              <li>You must provide accurate and complete account information.</li>
+              <li>You are responsible for safeguarding the password that you use to access the service.</li>
+              <li>You may not use the AI system to generate harmful, illicit, or hateful content.</li>
+              <li>You may not reverse-engineer, scrape, or programmatically abuse the generation endpoints.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-3">3. Subscriptions & Credits</h2>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+              DeckIQ operates on a credit-based system. Credits are consumed upon successful presentation generation. For detailed information regarding our non-refundable policy on credits, please review our entirely separate <Link href="/refund" className="text-accent-primary hover:underline">Refund Policy</Link> page.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-              3. Credits and Payments
-            </h2>
-            <p>
-              DeckIQ operates on a credit system. New accounts receive 3 free credits on signup. Additional credits can be purchased through our payment gateway (Razorpay). All purchases are final and <strong className="text-light-text-primary dark:text-dark-text-primary">non-refundable</strong> unless required by applicable law. Credits have no monetary value and cannot be transferred or redeemed for cash.
+            <h2 className="text-xl font-semibold mb-3">4. Disclaimer & Liability</h2>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+              The presentations and content generated by DeckIQ are provided "as is" and without warranties of any kind. We do not guarantee that the AI-generated facts will be 100% accurate, and it is the user's responsibility to review and edit the generated slides.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-              4. User Content
-            </h2>
-            <p>
-              You retain ownership of any content you input into the Service (topics, instructions, etc.). By using DeckIQ, you grant us a limited, non-exclusive license to process your inputs solely for the purpose of providing the Service. We do not claim ownership over your generated presentations. You are responsible for the content in your presentations and their use.
+            <h2 className="text-xl font-semibold mb-3">5. Contact Information</h2>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+              For any questions regarding these Terms & Conditions, please contact us at: <br/>
+              Email: <a href="mailto:deckiqteam@gmail.com" className="text-accent-primary hover:underline">deckiqteam@gmail.com</a>
             </p>
           </section>
 
-          <section>
-            <h2 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-              5. Privacy
-            </h2>
-            <p>
-              We collect only the information necessary to provide the Service, including your email, username, and usage data. Your generated files are stored securely in cloud storage and are accessible only to your account. We do not sell your personal data to third parties. For more details, please review our Privacy Policy (coming soon).
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-              6. Limitation of Liability
-            </h2>
-            <p>
-              DeckIQ is provided &quot;as is&quot; without warranties of any kind, either express or implied. To the fullest extent permitted by law, DeckIQ and its creators shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service. Our total liability to you shall not exceed the amount you paid for credits in the last 30 days.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-              7. Contact
-            </h2>
-            <p>
-              If you have any questions about these Terms &amp; Conditions, please contact us at{' '}
-              <a href="mailto:support@deckiq.com" className="text-accent-primary hover:underline">
-                support@deckiq.com
-              </a>
-              . We are committed to addressing your concerns promptly.
-            </p>
-          </section>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-light-text-muted/10 dark:border-dark-text-muted/10">
-          <Link
-            href="/"
-            className="text-sm text-light-text-muted dark:text-dark-text-muted hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors"
-          >
-            ← Back to DeckIQ
-          </Link>
         </div>
       </main>
+
+      <Footer />
     </div>
   )
 }
-

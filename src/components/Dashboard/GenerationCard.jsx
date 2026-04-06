@@ -43,7 +43,7 @@ export default function GenerationCard({ title, theme, slideCount, createdAt, fi
           {onDelete && (
             <button
               onClick={onDelete}
-              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-component text-light-text-muted dark:text-dark-text-muted hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
+              className="p-1.5 rounded-component text-light-text-muted dark:text-dark-text-muted hover:text-red-500 hover:bg-red-500/10 transition-all duration-150"
               aria-label="Delete generation"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
