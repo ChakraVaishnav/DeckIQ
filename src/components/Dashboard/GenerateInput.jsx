@@ -20,6 +20,16 @@ const THEME_VISUALS = {
   golden_hour:      { bg: '#78350F', accent: '#F59E0B', title: '#FEF3C7', label: 'Golden Hour',      vibe: 'Luxury & Warm' },
   ocean_depths:     { bg: '#003049', accent: '#F77F00', title: '#FCBF49', label: 'Ocean Depths',     vibe: 'Deep & Research' },
   pastel_dream:     { bg: '#FFF1FB', accent: '#EC4899', title: '#6B21A8', label: 'Pastel Dream',     vibe: 'Soft & Elegant' },
+  cherry_blossom:   { bg: '#FFF0F5', accent: '#FF69B4', title: '#C71585', label: 'Cherry Blossom',   vibe: 'Gentle & Spring' },
+  sapphire_glow:    { bg: '#000080', accent: '#00BFFF', title: '#E0FFFF', label: 'Sapphire Glow',    vibe: 'Bright & Trust' },
+  nordic_frost:     { bg: '#ECEFF4', accent: '#88C0D0', title: '#2E3440', label: 'Nordic Frost',     vibe: 'Cool & Minimal' },
+  retro_pop:        { bg: '#FFD54F', accent: '#4FC3F7', title: '#D84315', label: 'Retro Pop',        vibe: 'Loud & Vintage' },
+  cyberpunk:        { bg: '#000000', accent: '#00F0FF', title: '#FF003C', label: 'Cyberpunk',        vibe: 'Neon & Gritty' },
+  autumn_leaves:    { bg: '#FFF8E1', accent: '#FF8F00', title: '#3E2723', label: 'Autumn Leaves',    vibe: 'Warm & Cosy' },
+  monochrome:       { bg: '#FFFFFF', accent: '#666666', title: '#000000', label: 'Monochrome',       vibe: 'Stark & Classic' },
+  vintage_sepia:    { bg: '#F4ECD8', accent: '#8B4513', title: '#5C4033', label: 'Vintage Sepia',    vibe: 'Old World' },
+  neon_sunset:      { bg: '#240046', accent: '#E0AAFF', title: '#FF9E00', label: 'Neon Sunset',      vibe: 'Synthwave' },
+  desert_sand:      { bg: '#EDC9AF', accent: '#CC7722', title: '#4A3C31', label: 'Desert Sand',      vibe: 'Earthy & Dry' },
 }
 
 const STEPS = [

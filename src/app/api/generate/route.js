@@ -39,7 +39,9 @@ const THEME_KEYS = [
   'dark_tech', 'minimal_light', 'corporate_blue', 'vibrant_creative',
   'nature_green', 'berlin', 'slate_dark', 'coral_energy',
   'midnight', 'arctic', 'emerald', 'neon_noir', 'golden_hour',
-  'ocean_depths', 'pastel_dream',
+  'ocean_depths', 'pastel_dream', 'cherry_blossom', 'sapphire_glow',
+  'nordic_frost', 'retro_pop', 'cyberpunk', 'autumn_leaves',
+  'monochrome', 'vintage_sepia', 'neon_sunset', 'desert_sand'
 ]
 
 const THEMES = {
@@ -58,6 +60,16 @@ const THEMES = {
   golden_hour: { bg: '78350F', title: 'FEF3C7', body: 'FDE68A', accent: 'F59E0B', tf: 'Georgia', bf: 'Georgia' },
   ocean_depths: { bg: '003049', title: 'FCBF49', body: 'EAE2B7', accent: 'F77F00', tf: 'Calibri', bf: 'Calibri' },
   pastel_dream: { bg: 'FFF1FB', title: '6B21A8', body: '9333EA', accent: 'EC4899', tf: 'Georgia', bf: 'Calibri' },
+  cherry_blossom: { bg: 'FFF0F5', title: 'C71585', body: '8B008B', accent: 'FF69B4', tf: 'Georgia', bf: 'Calibri' },
+  sapphire_glow: { bg: '000080', title: 'E0FFFF', body: 'ADD8E6', accent: '00BFFF', tf: 'Arial', bf: 'Arial' },
+  nordic_frost: { bg: 'ECEFF4', title: '2E3440', body: '4C566A', accent: '88C0D0', tf: 'Arial', bf: 'Arial' },
+  retro_pop: { bg: 'FFD54F', title: 'D84315', body: 'F4511E', accent: '4FC3F7', tf: 'Arial', bf: 'Arial' },
+  cyberpunk: { bg: '000000', title: 'FF003C', body: 'FCE205', accent: '00F0FF', tf: 'Courier New', bf: 'Courier New' },
+  autumn_leaves: { bg: 'FFF8E1', title: '3E2723', body: '5D4037', accent: 'FF8F00', tf: 'Georgia', bf: 'Georgia' },
+  monochrome: { bg: 'FFFFFF', title: '000000', body: '333333', accent: '666666', tf: 'Arial', bf: 'Arial' },
+  vintage_sepia: { bg: 'F4ECD8', title: '5C4033', body: '654321', accent: '8B4513', tf: 'Georgia', bf: 'Calibri' },
+  neon_sunset: { bg: '240046', title: 'FF9E00', body: 'FF9100', accent: 'E0AAFF', tf: 'Arial', bf: 'Arial' },
+  desert_sand: { bg: 'EDC9AF', title: '4A3C31', body: '614A36', accent: 'CC7722', tf: 'Calibri', bf: 'Calibri' },
 }
 
 // ─── Content generation ───────────────────────────────────────────────────

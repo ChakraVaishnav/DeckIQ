@@ -18,6 +18,21 @@ const THEMES = [
   { name: 'Coral Energy', bg: '#FF4500', text: '#FFFFFF', accent: '#FFD700', preview: '#FF6E40' },
   { name: 'Midnight', bg: '#0D1117', text: '#C9D1D9', accent: '#58A6FF', preview: '#161B22' },
   { name: 'Arctic', bg: '#EFF6FF', text: '#1E3A5F', accent: '#2563EB', preview: '#DBEAFE' },
+  { name: 'Emerald', bg: '#064E3B', text: '#ECFDF5', accent: '#10B981', preview: '#047857' },
+  { name: 'Neon Noir', bg: '#09090B', text: '#E4E4E7', accent: '#A855F7', preview: '#27272A' },
+  { name: 'Golden Hour', bg: '#78350F', text: '#FEF3C7', accent: '#F59E0B', preview: '#92400E' },
+  { name: 'Ocean Depths', bg: '#003049', text: '#FCBF49', accent: '#F77F00', preview: '#004A7C' },
+  { name: 'Pastel Dream', bg: '#FFF1FB', text: '#6B21A8', accent: '#EC4899', preview: '#FCE7F3' },
+  { name: 'Cherry Blossom', bg: '#FFF0F5', text: '#C71585', accent: '#FF69B4', preview: '#FEE2E2' },
+  { name: 'Sapphire Glow', bg: '#000080', text: '#E0FFFF', accent: '#00BFFF', preview: '#1E3A8A' },
+  { name: 'Nordic Frost', bg: '#ECEFF4', text: '#2E3440', accent: '#88C0D0', preview: '#E5E7EB' },
+  { name: 'Retro Pop', bg: '#FFD54F', text: '#D84315', accent: '#4FC3F7', preview: '#FDE047' },
+  { name: 'Cyberpunk', bg: '#000000', text: '#FF003C', accent: '#00F0FF', preview: '#111827' },
+  { name: 'Autumn Leaves', bg: '#FFF8E1', text: '#3E2723', accent: '#FF8F00', preview: '#FEF3C7' },
+  { name: 'Monochrome', bg: '#FFFFFF', text: '#000000', accent: '#666666', preview: '#F3F4F6' },
+  { name: 'Vintage Sepia', bg: '#F4ECD8', text: '#5C4033', accent: '#8B4513', preview: '#FEF08A' },
+  { name: 'Neon Sunset', bg: '#240046', text: '#FF9E00', accent: '#E0AAFF', preview: '#3B0764' },
+  { name: 'Desert Sand', bg: '#EDC9AF', text: '#4A3C31', accent: '#CC7722', preview: '#FED7AA' },
 ]
 
 function ThemeCard({ theme }) {
@@ -65,7 +80,7 @@ export default function ThemeShowcase() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-4">
-            20+ stunning themes. One click away.
+            25 stunning themes. One click away.
           </h2>
           <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-xl mx-auto">
             DeckIQ picks the best theme for your topic automatically — or you can choose.
