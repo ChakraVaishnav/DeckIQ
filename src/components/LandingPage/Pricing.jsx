@@ -75,7 +75,7 @@ export default function Pricing() {
               <path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
               <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
             </svg>
-            Every new account gets 3 free generations to start
+            Payments aren't integrated yet! Every new user gets 100 FREE credits to start generating.
           </span>
         </motion.div>
 

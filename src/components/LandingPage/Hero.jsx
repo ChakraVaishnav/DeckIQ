@@ -1,7 +1,8 @@
 'use client'
 
+import { useRef } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -84,8 +85,20 @@ function SlidePreview() {
 }
 
 export default function Hero() {
+  const containerRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end start']
+  })
+
+  // 3D Parallax sliding animations for the mockup
+  const y = useTransform(scrollYProgress, [0, 1], [0, 150])
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.9])
+  const rotateX = useTransform(scrollYProgress, [0, 1], [0, 30])
+
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-16 pb-12 overflow-hidden">
+    <section ref={containerRef} className="relative min-h-screen flex flex-col items-center justify-center pt-16 pb-12 overflow-hidden" style={{ position: 'relative', perspective: '1000px' }}>
       {/* Subtle radial glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-accent-primary/8 dark:bg-accent-primary/12 rounded-full blur-3xl pointer-events-none" />
 
@@ -145,12 +158,16 @@ export default function Hero() {
           </motion.div>
 
           {/* Subtext */}
-          <motion.p variants={fadeUp} className="text-xs text-light-text-muted dark:text-dark-text-muted mb-16">
-            3 free generations. No credit card required.
+          <motion.p variants={fadeUp} className="text-sm font-medium text-accent-primary mb-12">
+            🎉 Limited Offer: 100 FREE credits for new users (valid until end of April)
           </motion.p>
 
-          {/* Mockup */}
-          <motion.div variants={fadeUp} className="w-full max-w-xl">
+          {/* Mockup with Scroll Parallax */}
+          <motion.div 
+            variants={fadeUp} 
+            className="w-full max-w-xl"
+            style={{ y, opacity, scale, rotateX, transformStyle: "preserve-3d" }}
+          >
             <SlidePreview />
           </motion.div>
         </motion.div>

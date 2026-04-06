@@ -10,18 +10,19 @@ import Footer from '@/components/LandingPage/Footer'
 import { useAuth } from '@/context/AuthContext'
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+  hidden: { opacity: 0, y: 40, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
 }
 
 const stagger = {
-  visible: { transition: { staggerChildren: 0.06 } },
+  visible: { transition: { staggerChildren: 0.1 } },
 }
 
 function GenerationsContent() {
   const { authFetch } = useAuth()
   const [ppts, setPpts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState(null)
 
   const fetchAll = useCallback(async () => {
     try {
@@ -36,17 +37,22 @@ function GenerationsContent() {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
-  const handleDelete = async (pptId) => {
-    if (!confirm('Delete this presentation? This cannot be undone.')) return
+  const handleDeleteClick = (pptId) => {
+    setDeletingId(pptId)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deletingId) return
     try {
       const res = await authFetch('/api/generations', {
         method: 'DELETE',
-        body: JSON.stringify({ pptId }),
+        body: JSON.stringify({ pptId: deletingId }),
       })
       if (res.ok) {
-        setPpts((prev) => prev.filter((p) => p.id !== pptId))
+        setPpts((prev) => prev.filter((p) => p.id !== deletingId))
       }
     } catch {}
+    setDeletingId(null)
   }
 
   return (
@@ -111,7 +117,7 @@ function GenerationsContent() {
               <motion.div key={ppt.id} variants={fadeUp}>
                 <GenerationCard
                   {...ppt}
-                  onDelete={() => handleDelete(ppt.id)}
+                  onDelete={() => handleDeleteClick(ppt.id)}
                 />
               </motion.div>
             ))}
@@ -119,6 +125,38 @@ function GenerationsContent() {
         )}
       </main>
       <Footer />
+
+      {/* Custom Delete Modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setDeletingId(null)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/20 dark:border-dark-text-muted/20 rounded-card p-6 w-full max-w-sm text-center shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-14 h-14 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>
+              </svg>
+            </div>
+            <h3 className="text-xl font-medium text-light-text-primary dark:text-dark-text-primary mb-2">Delete Project?</h3>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted mb-6">
+              This generation cannot be restored again. Are you sure you want to delete it permanently?
+            </p>
+            <div className="flex gap-3 w-full">
+              <button onClick={() => setDeletingId(null)} className="flex-1 py-2.5 rounded-component border border-light-text-muted/30 dark:border-dark-text-muted/30 text-sm text-light-text-primary dark:text-dark-text-primary hover:bg-light-bg-elevated dark:hover:bg-dark-bg-elevated transition-colors font-medium">
+                Cancel
+              </button>
+              <button onClick={handleConfirmDelete} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2.5 rounded-component transition-colors text-sm shadow-sm hover:shadow">
+                Delete
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }

@@ -5,31 +5,31 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 // Theme visual configs for the picker UI
 const THEME_VISUALS = {
-  dark_tech:        { bg: '#0F0F14', accent: '#5B4CF5', title: '#00DCFF', label: 'Dark Tech',        vibe: 'Futuristic & Bold' },
-  minimal_light:    { bg: '#FFFFFF', accent: '#5B4CF5', title: '#0F0F14', label: 'Minimal Light',    vibe: 'Clean & Professional' },
-  corporate_blue:   { bg: '#1E2761', accent: '#3B82F6', title: '#FFFFFF', label: 'Corporate Blue',   vibe: 'Trustworthy & Formal' },
-  vibrant_creative: { bg: '#FF6B6B', accent: '#FFE66D', title: '#FFFFFF', label: 'Vibrant Creative', vibe: 'Bold & Energetic' },
-  nature_green:     { bg: '#1A3A2A', accent: '#66BB6A', title: '#E8F5E9', label: 'Nature Green',     vibe: 'Calm & Sustainable' },
-  berlin:           { bg: '#1C1C1E', accent: '#FF9500', title: '#F2F2F7', label: 'Berlin',           vibe: 'Modern & Urban' },
-  slate_dark:       { bg: '#1E293B', accent: '#94A3B8', title: '#F8FAFC', label: 'Slate Dark',       vibe: 'Sophisticated' },
-  coral_energy:     { bg: '#FF4500', accent: '#FFD700', title: '#FFFFFF', label: 'Coral Energy',     vibe: 'High Energy & Sales' },
-  midnight:         { bg: '#0D1117', accent: '#58A6FF', title: '#C9D1D9', label: 'Midnight',         vibe: 'Deep & Technical' },
-  arctic:           { bg: '#EFF6FF', accent: '#2563EB', title: '#1E3A5F', label: 'Arctic',           vibe: 'Fresh & Scientific' },
-  emerald:          { bg: '#064E3B', accent: '#10B981', title: '#ECFDF5', label: 'Emerald',          vibe: 'Premium & Growth' },
-  neon_noir:        { bg: '#09090B', accent: '#A855F7', title: '#E4E4E7', label: 'Neon Noir',        vibe: 'Cyber & Creative' },
-  golden_hour:      { bg: '#78350F', accent: '#F59E0B', title: '#FEF3C7', label: 'Golden Hour',      vibe: 'Luxury & Warm' },
-  ocean_depths:     { bg: '#003049', accent: '#F77F00', title: '#FCBF49', label: 'Ocean Depths',     vibe: 'Deep & Research' },
-  pastel_dream:     { bg: '#FFF1FB', accent: '#EC4899', title: '#6B21A8', label: 'Pastel Dream',     vibe: 'Soft & Elegant' },
-  cherry_blossom:   { bg: '#FFF0F5', accent: '#FF69B4', title: '#C71585', label: 'Cherry Blossom',   vibe: 'Gentle & Spring' },
-  sapphire_glow:    { bg: '#000080', accent: '#00BFFF', title: '#E0FFFF', label: 'Sapphire Glow',    vibe: 'Bright & Trust' },
-  nordic_frost:     { bg: '#ECEFF4', accent: '#88C0D0', title: '#2E3440', label: 'Nordic Frost',     vibe: 'Cool & Minimal' },
-  retro_pop:        { bg: '#FFD54F', accent: '#4FC3F7', title: '#D84315', label: 'Retro Pop',        vibe: 'Loud & Vintage' },
-  cyberpunk:        { bg: '#000000', accent: '#00F0FF', title: '#FF003C', label: 'Cyberpunk',        vibe: 'Neon & Gritty' },
-  autumn_leaves:    { bg: '#FFF8E1', accent: '#FF8F00', title: '#3E2723', label: 'Autumn Leaves',    vibe: 'Warm & Cosy' },
-  monochrome:       { bg: '#FFFFFF', accent: '#666666', title: '#000000', label: 'Monochrome',       vibe: 'Stark & Classic' },
-  vintage_sepia:    { bg: '#F4ECD8', accent: '#8B4513', title: '#5C4033', label: 'Vintage Sepia',    vibe: 'Old World' },
-  neon_sunset:      { bg: '#240046', accent: '#E0AAFF', title: '#FF9E00', label: 'Neon Sunset',      vibe: 'Synthwave' },
-  desert_sand:      { bg: '#EDC9AF', accent: '#CC7722', title: '#4A3C31', label: 'Desert Sand',      vibe: 'Earthy & Dry' },
+  dark_tech:        { bg: '#0F0F14', accent: '#5B4CF5', title: '#00DCFF', body: '#DCDCDC', label: 'Dark Tech',        vibe: 'Futuristic & Bold' },
+  minimal_light:    { bg: '#FFFFFF', accent: '#5B4CF5', title: '#0F0F14', body: '#3C3C3C', label: 'Minimal Light',    vibe: 'Clean & Professional' },
+  corporate_blue:   { bg: '#1E2761', accent: '#3B82F6', title: '#FFFFFF', body: '#CADCFC', label: 'Corporate Blue',   vibe: 'Trustworthy & Formal' },
+  vibrant_creative: { bg: '#FF6B6B', accent: '#FFE66D', title: '#FFFFFF', body: '#FFFFFF', label: 'Vibrant Creative', vibe: 'Bold & Energetic' },
+  nature_green:     { bg: '#1A3A2A', accent: '#66BB6A', title: '#E8F5E9', body: '#C8E6C9', label: 'Nature Green',     vibe: 'Calm & Sustainable' },
+  berlin:           { bg: '#1C1C1E', accent: '#FF9500', title: '#F2F2F7', body: '#E5E5EA', label: 'Berlin',           vibe: 'Modern & Urban' },
+  slate_dark:       { bg: '#1E293B', accent: '#94A3B8', title: '#F8FAFC', body: '#CBD5E1', label: 'Slate Dark',       vibe: 'Sophisticated' },
+  coral_energy:     { bg: '#FF4500', accent: '#FFD700', title: '#FFFFFF', body: '#FFE4D6', label: 'Coral Energy',     vibe: 'High Energy & Sales' },
+  midnight:         { bg: '#0D1117', accent: '#58A6FF', title: '#C9D1D9', body: '#8B949E', label: 'Midnight',         vibe: 'Deep & Technical' },
+  arctic:           { bg: '#EFF6FF', accent: '#2563EB', title: '#1E3A5F', body: '#334155', label: 'Arctic',           vibe: 'Fresh & Scientific' },
+  emerald:          { bg: '#064E3B', accent: '#10B981', title: '#ECFDF5', body: '#A7F3D0', label: 'Emerald',          vibe: 'Premium & Growth' },
+  neon_noir:        { bg: '#09090B', accent: '#A855F7', title: '#E4E4E7', body: '#A1A1AA', label: 'Neon Noir',        vibe: 'Cyber & Creative' },
+  golden_hour:      { bg: '#78350F', accent: '#F59E0B', title: '#FEF3C7', body: '#FDE68A', label: 'Golden Hour',      vibe: 'Luxury & Warm' },
+  ocean_depths:     { bg: '#003049', accent: '#F77F00', title: '#FCBF49', body: '#EAE2B7', label: 'Ocean Depths',     vibe: 'Deep & Research' },
+  pastel_dream:     { bg: '#FFF1FB', accent: '#EC4899', title: '#6B21A8', body: '#9333EA', label: 'Pastel Dream',     vibe: 'Soft & Elegant' },
+  cherry_blossom:   { bg: '#FFF0F5', accent: '#FF69B4', title: '#C71585', body: '#8B008B', label: 'Cherry Blossom',   vibe: 'Gentle & Spring' },
+  sapphire_glow:    { bg: '#000080', accent: '#00BFFF', title: '#E0FFFF', body: '#ADD8E6', label: 'Sapphire Glow',    vibe: 'Bright & Trust' },
+  nordic_frost:     { bg: '#ECEFF4', accent: '#88C0D0', title: '#2E3440', body: '#4C566A', label: 'Nordic Frost',     vibe: 'Cool & Minimal' },
+  retro_pop:        { bg: '#FFD54F', accent: '#4FC3F7', title: '#D84315', body: '#F4511E', label: 'Retro Pop',        vibe: 'Loud & Vintage' },
+  cyberpunk:        { bg: '#000000', accent: '#00F0FF', title: '#FF003C', body: '#FCE205', label: 'Cyberpunk',        vibe: 'Neon & Gritty' },
+  autumn_leaves:    { bg: '#FFF8E1', accent: '#FF8F00', title: '#3E2723', body: '#5D4037', label: 'Autumn Leaves',    vibe: 'Warm & Cosy' },
+  monochrome:       { bg: '#FFFFFF', accent: '#666666', title: '#000000', body: '#333333', label: 'Monochrome',       vibe: 'Stark & Classic' },
+  vintage_sepia:    { bg: '#F4ECD8', accent: '#8B4513', title: '#5C4033', body: '#654321', label: 'Vintage Sepia',    vibe: 'Old World' },
+  neon_sunset:      { bg: '#240046', accent: '#E0AAFF', title: '#FF9E00', body: '#FF9100', label: 'Neon Sunset',      vibe: 'Synthwave' },
+  desert_sand:      { bg: '#EDC9AF', accent: '#CC7722', title: '#4A3C31', body: '#614A36', label: 'Desert Sand',      vibe: 'Earthy & Dry' },
 }
 
 const STEPS = [
@@ -109,20 +109,31 @@ function ThemePreview({ themeKey, slidesData }) {
   // Slide 2..3 Content
   if (slidesData.slides) {
     slidesData.slides.slice(0, 2).forEach((slide, idx) => {
+      const imgUrl = slidesData.imageUrls ? slidesData.imageUrls[idx] : null
+      const isImageRight = idx % 2 === 0
+
       slidesToShow.push(
-        <div key={`content-${idx}`} className="flex flex-col p-5 h-full relative" style={{ background: v.bg }}>
-          <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 5, background: v.accent }} />
-          <p style={{ fontSize: 16, fontWeight: 700, color: v.title, marginBottom: 6, lineHeight: 1.2 }} className="truncate">
+        <div key={`content-${idx}`} className="flex flex-col p-6 sm:p-8 h-full relative" style={{ background: v.bg }}>
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 8, background: v.accent }} />
+          <p style={{ fontSize: 'clamp(18px, 2.5vw, 24px)', fontWeight: 700, color: v.title, marginBottom: 8, lineHeight: 1.2 }}>
             {slide.title}
           </p>
-          <div style={{ height: 1.5, background: v.accent, marginBottom: 10, width: '100%' }} />
-          <div className="flex flex-col gap-2.5 flex-1 overflow-hidden">
-            {slide.bullets.slice(0, 3).map((b, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'start', gap: 6 }}>
-                <div style={{ width: 5, height: 5, borderRadius: '50%', background: v.accent, flexShrink: 0, marginTop: 4 }} />
-                <p style={{ fontSize: 12, color: v.body || v.title, opacity: 0.85, lineHeight: 1.3 }} className="line-clamp-2">{b}</p>
+          <div style={{ height: 2, background: v.accent, marginBottom: 16, width: '100%' }} />
+          
+          <div className={`flex flex-1 overflow-hidden ${imgUrl ? 'gap-6' : ''} ${!isImageRight && imgUrl ? 'flex-row-reverse' : 'flex-row'}`}>
+            <div className="flex flex-col gap-4 flex-1 overflow-y-auto hide-scrollbar">
+              {slide.bullets.map((b, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: v.accent, flexShrink: 0, marginTop: 6 }} />
+                  <p style={{ fontSize: 'clamp(12px, 1.6vw, 15px)', color: v.body || v.title, opacity: 0.9, lineHeight: 1.4 }}>{b}</p>
+                </div>
+              ))}
+            </div>
+            {imgUrl && (
+              <div className="w-[45%] h-full rounded-md shadow-sm overflow-hidden flex-shrink-0 relative bg-black/5">
+                <img src={imgUrl} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
               </div>
-            ))}
+            )}
           </div>
         </div>
       )
@@ -131,30 +142,40 @@ function ThemePreview({ themeKey, slidesData }) {
   
   // If we still need a 3rd slide, show conclusion
   if (slidesToShow.length < 3 && slidesData.conclusionBullets) {
+    const conclusionImg = slidesData.imageUrls ? slidesData.imageUrls[slidesData.slides.length] : null
+
     slidesToShow.push(
-      <div key="conclusion" className="flex flex-col p-5 h-full relative" style={{ background: v.bg }}>
-        <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 5, background: v.accent }} />
-        <p style={{ fontSize: 16, fontWeight: 700, color: v.title, marginBottom: 6, lineHeight: 1.2 }}>
+      <div key="conclusion" className="flex flex-col p-6 sm:p-8 h-full relative" style={{ background: v.bg }}>
+        <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 8, background: v.accent }} />
+        <p style={{ fontSize: 'clamp(18px, 2.5vw, 24px)', fontWeight: 700, color: v.title, marginBottom: 8, lineHeight: 1.2 }}>
           Key Takeaways
         </p>
-        <div style={{ height: 1.5, background: v.accent, marginBottom: 10, width: '100%' }} />
-        <div className="flex flex-col gap-2.5 flex-1 overflow-hidden">
-          {slidesData.conclusionBullets.slice(0, 3).map((b, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'start', gap: 6 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: v.accent, flexShrink: 0, marginTop: 4 }} />
-              <p style={{ fontSize: 12, color: v.body || v.title, opacity: 0.85, lineHeight: 1.3 }} className="line-clamp-2">{b}</p>
+        <div style={{ height: 2, background: v.accent, marginBottom: 16, width: '100%' }} />
+        <div className={`flex flex-1 overflow-hidden ${conclusionImg ? 'gap-6' : ''}`}>
+          <div className="flex flex-col gap-4 flex-1 overflow-y-auto hide-scrollbar">
+            {slidesData.conclusionBullets.map((b, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: v.accent, flexShrink: 0, marginTop: 6 }} />
+                <p style={{ fontSize: 'clamp(12px, 1.6vw, 15px)', color: v.body || v.title, opacity: 0.9, lineHeight: 1.4 }}>{b}</p>
+              </div>
+            ))}
+          </div>
+          {conclusionImg && (
+            <div className="w-[45%] h-full rounded-md shadow-sm overflow-hidden flex-shrink-0 relative bg-black/5">
+              <img src={conclusionImg} alt="Conclusion" className="absolute inset-0 w-full h-full object-cover" />
             </div>
-          ))}
+          )}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="w-full flex gap-3 overflow-x-auto pb-2 snap-x hide-scrollbar">
+    <div className="w-full flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar scroll-smooth">
       {slidesToShow.map((slide, i) => (
-        <div key={i} className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-[16/9] rounded-xl overflow-hidden shadow-sm border border-black/5 snap-center">
+        <div key={i} className="flex-shrink-0 w-full lg:w-[480px] xl:w-[500px] aspect-[16/9] rounded-xl overflow-hidden shadow border border-black/10 snap-center relative">
           {slide}
+          <div className="absolute bottom-2 right-4 text-xs font-medium text-black/30 dark:text-white/30 mix-blend-difference">{i + 1} / {slidesToShow.length}</div>
         </div>
       ))}
     </div>
@@ -313,7 +334,13 @@ export default function GenerateInput({ user, onBuyCredits, onGenerated, authFet
                 min={3}
                 max={20}
                 value={slideCount}
-                onChange={e => setSlideCount(e.target.value)}
+                onChange={e => {
+                  let val = e.target.value;
+                  if (val === '') { setSlideCount(''); return; }
+                  let num = parseInt(val, 10);
+                  if (num > 20) num = 20;
+                  setSlideCount(num);
+                }}
                 className="w-full bg-light-bg-primary dark:bg-dark-bg-primary border border-light-text-muted/30 dark:border-dark-text-muted/30 rounded-component px-3 py-2 text-sm text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/50 transition-all"
                 disabled={status !== 'idle' && status !== 'error'}
               />

@@ -11,20 +11,31 @@ import { verifyAccessToken, extractBearerToken } from '@/lib/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import PptxGenJS from 'pptxgenjs'
 import { nanoid } from 'nanoid'
-import { InferenceClient } from '@huggingface/inference'
+// ─── Groq API ──────────────────────────────────────────────────────────────
+const GROQ_API_KEY = process.env.GROQ_API_KEY
+const GROQ_MODEL = 'llama-3.3-70b-versatile'
 
-// ─── HuggingFace Qwen via InferenceClient ────────────────────────────────────
-const hfClient = new InferenceClient(process.env.HUGGINGFACE_TOKEN)
-const HF_MODEL = 'Qwen/Qwen2.5-7B-Instruct:together'
-
-async function callQwen(prompt, maxTokens = 512) {
-  const chatCompletion = await hfClient.chatCompletion({
-    model: HF_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: maxTokens,
-    temperature: 0.7,
+async function callGroq(prompt, maxTokens) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: maxTokens,
+      temperature: 0.7,
+    })
   })
-  return chatCompletion.choices[0].message.content.trim()
+  if (!res.ok) {
+    const errText = await res.text()
+    console.error('Groq Error:', errText)
+    throw new Error('Groq API Error')
+  }
+  const data = await res.json()
+  return data.choices[0].message.content.trim()
 }
 
 function parseJsonArray(text) {
@@ -32,6 +43,13 @@ function parseJsonArray(text) {
     const match = text.match(/\[[\s\S]*?\]/)
     return match ? JSON.parse(match[0]) : []
   } catch { return [] }
+}
+
+function parseJsonObject(text) {
+  try {
+    const match = text.match(/\{[\s\S]*\}/)
+    return match ? JSON.parse(match[0]) : {}
+  } catch { return {} }
 }
 
 // ─── Theme list (shared with frontend) ────────────────────────────────────
@@ -75,13 +93,14 @@ const THEMES = {
 // ─── Content generation ───────────────────────────────────────────────────
 async function generateContent(topic, slideCount) {
   // 1. ONE compressed API call for all presentation metadata and structure
-  const masterRaw = await callQwen(
+  const masterRaw = await callGroq(
     `Create a highly professional presentation outline about "${topic}".
 Output ONLY valid JSON matching this exact structure:
 {
   "presentationTitle": "Engaging 5-8 word title",
   "subtitle": "A one-sentence engaging subtitle",
   "theme": "Pick one: ${THEME_KEYS.join(', ')}",
+  "imageKeyword": "1-2 words representing the main topic for a stock photo search",
   "slideTitles": ["Title 1", "Title 2"], // Generate exactly ${slideCount} strings
   "conclusionBullets": ["Key takeaway 1", "Key takeaway 2", "Key takeaway 3"] // Exactly 3 takeaway strings
 }`, 800
@@ -92,115 +111,157 @@ Output ONLY valid JSON matching this exact structure:
     const match = masterRaw.match(/\{[\s\S]*\}/)
     layoutData = match ? JSON.parse(match[0]) : {}
   } catch (err) {
-    console.error('Master layout parse error', err)
+    // Silent fail for production, fallbacks kick in
   }
 
   // Fallbacks in case LLM structure gets slightly corrupted
   const presentationTitle = layoutData.presentationTitle || topic
   const subtitle = layoutData.subtitle || `Comprehensive overview of ${topic}`
   const suggestedTheme = THEME_KEYS.includes(layoutData.theme) ? layoutData.theme : 'minimal_light'
-  
+  const mainImageQuery = layoutData.imageKeyword || topic
+
   let titles = Array.isArray(layoutData.slideTitles) ? layoutData.slideTitles : []
   if (titles.length !== Number(slideCount)) {
     titles = Array.from({ length: Number(slideCount) }, (_, i) => titles[i] || `Section ${i + 1}`)
   }
-  
+
   let conclusionData = Array.isArray(layoutData.conclusionBullets) ? layoutData.conclusionBullets : []
   const conclusionBullets = conclusionData.length >= 3 ? conclusionData.slice(0, 3) : ['Key insights discussed', 'Actionable next steps identified', 'Thank you for your attention']
 
   // 2. Bullets for each slide generated in parallel (preventing massive token timeouts)
   const slides = await Promise.all(
     titles.map(async (title) => {
-      const raw = await callQwen(
+      const raw = await callGroq(
         `Write exactly 5 concise bullet points for a slide titled "${title}" inside a deck about "${presentationTitle}".
-Output MUST be a valid JSON array containing exactly 5 strings. No markdown, no intro text.
-Example:
-[
-  "First point about the topic",
-  "Second informative detail",
-  "Third important concept",
-  "Fourth key consideration",
-  "Fifth concluding point"
-]`
+Output ONLY valid JSON matching this exact structure:
+{
+  "imageKeyword": "1-2 words representing this slide for a stock photo search",
+  "bullets": [
+    "First point about the topic",
+    "Second informative detail",
+    "Third important concept",
+    "Fourth key consideration",
+    "Fifth concluding point"
+  ]
+}`, 150
       )
-      const bullets = parseJsonArray(raw)
+      const data = parseJsonObject(raw)
+      let bullets = Array.isArray(data.bullets) ? data.bullets : parseJsonArray(raw)
       return {
         title,
         bullets: bullets.length >= 5 ? bullets.slice(0, 5) : Array.from({ length: 5 }, (_, i) => bullets[i] || `Key point about ${title}`),
+        imageQuery: data.imageKeyword || title,
       }
     })
   )
 
-  return { presentationTitle, subtitle, slides, conclusionBullets, suggestedTheme }
+  return { presentationTitle, subtitle, slides, conclusionBullets, suggestedTheme, mainImageQuery }
 }
 
-async function fetchImageFromPexels(query) {
-  if (!process.env.PEXELS_API_KEY) return null
+async function fetchImagesFromSerper(query, num = 10) {
+  const apiKey = process.env.SERPER_API_KEY
+
   try {
-    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1`, {
-      headers: { Authorization: process.env.PEXELS_API_KEY },
+    const res = await fetch('https://google.serper.dev/images', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ q: query, num })
     })
     const data = await res.json()
-    if (data.photos && data.photos.length > 0) {
-      return data.photos[0].src.large2x || data.photos[0].src.large
+    if (data.images && data.images.length > 0) {
+      return data.images.map(img => img.imageUrl)
     }
-  } catch (err) {
-    console.error('Pexels error:', err)
+  } catch (err) { }
+  return []
+}
+
+// ─── Native Image Validator (to prevent broken PPTX renders) ───────────────
+async function getValidBase64Images(query, neededCount) {
+  // Ask for extra URLs in case many are broken hotlinks
+  const urls = await fetchImagesFromSerper(query, neededCount + 10)
+  const validImages = []
+  
+  // Try to fetch them in parallel with a strict 2s timeout
+  const promises = urls.map(async (url) => {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 2000)
+      
+      const res = await fetch(url, { 
+        signal: controller.signal, 
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36' } 
+      })
+      clearTimeout(timeoutId)
+      
+      if (!res.ok) return null
+      
+      const contentType = res.headers.get('content-type')
+      if (!contentType || !contentType.startsWith('image/')) return null
+      
+      // Some PPTX viewers fail on webp, standard jpegs/pngs are safer but we embed everything we can get
+      const format = contentType.split('/')[1] || 'jpeg'
+      const arrayBuffer = await res.arrayBuffer()
+      const base64 = Buffer.from(arrayBuffer).toString('base64')
+      
+      return `image/${format};base64,${base64}`
+    } catch {
+      return null
+    }
+  })
+
+  // Harvest successful ones
+  const results = await Promise.all(promises)
+  for (const b64 of results) {
+    if (b64) validImages.push(b64)
+    if (validImages.length >= neededCount) break
   }
-  return null
+  
+  return validImages
 }
 
 // ─── PPTX builder (with images) ─────────────────────────────────────────────
-async function buildPptx(presentationTitle, slides, subtitle, conclusionBullets, theme) {
+async function buildPptx(mainImageQuery, presentationTitle, slides, subtitle, conclusionBullets, theme) {
   const tc = THEMES[theme] || THEMES.minimal_light
   const pptx = new PptxGenJS()
   pptx.layout = 'LAYOUT_16x9'
   pptx.author = 'DeckIQ'
   pptx.title = presentationTitle
 
-  // Fetch images concurrently
-  const [titleImg, ...slideImgs] = await Promise.all([
-    fetchImageFromPexels(presentationTitle || subtitle || 'presentation'),
-    ...slides.map(s => fetchImageFromPexels(s.title))
-  ])
-  const conclusionImg = await fetchImageFromPexels('summary conclusion key takeaways')
+  // Fetch all images explicitly mapped as verified Base64 Buffers!
+  const images = await getValidBase64Images(mainImageQuery || presentationTitle || 'presentation', slides.length + 1)
 
-  // Title slide
+  // Title slide (no image as requested)
   const ts = pptx.addSlide()
   ts.background = { color: tc.bg }
   ts.addShape('rect', { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: tc.accent } })
   ts.addShape('rect', { x: 0, y: 5.53, w: '100%', h: 0.1, fill: { color: tc.accent } })
-  
-  if (titleImg) {
-    ts.addImage({ path: titleImg, x: 5.5, y: 0.8, w: 4.0, h: 4.0, sizing: { type: 'cover' } })
-    ts.addText(presentationTitle, { x: 0.6, y: 1.3, w: 4.8, h: 2.0, fontSize: 36, bold: true, color: tc.title, fontFace: tc.tf, align: 'left' })
-    ts.addText(subtitle, { x: 0.6, y: 3.5, w: 4.8, h: 0.6, fontSize: 15, color: tc.accent, fontFace: tc.bf, align: 'left' })
-    ts.addText('Generated by DeckIQ', { x: 0.6, y: 4.9, w: 4.8, h: 0.4, fontSize: 10, color: tc.body, fontFace: tc.bf, align: 'left' })
-  } else {
-    ts.addText(presentationTitle, { x: 0.6, y: 1.3, w: 8.8, h: 2.0, fontSize: 36, bold: true, color: tc.title, fontFace: tc.tf, align: 'center' })
-    ts.addText(subtitle, { x: 0.6, y: 3.5, w: 8.8, h: 0.6, fontSize: 15, color: tc.accent, fontFace: tc.bf, align: 'center' })
-    ts.addText('Generated by DeckIQ', { x: 0.6, y: 4.9, w: 8.8, h: 0.4, fontSize: 10, color: tc.body, fontFace: tc.bf, align: 'center' })
-  }
+
+  ts.addText(presentationTitle, { x: 0.6, y: 1.3, w: 8.8, h: 2.0, fontSize: 36, bold: true, color: tc.title, fontFace: tc.tf, align: 'center' })
+  ts.addText(subtitle, { x: 0.6, y: 3.5, w: 8.8, h: 0.6, fontSize: 15, color: tc.accent, fontFace: tc.bf, align: 'center' })
+  ts.addText('Generated by DeckIQ', { x: 0.6, y: 4.9, w: 8.8, h: 0.4, fontSize: 10, color: tc.body, fontFace: tc.bf, align: 'center' })
 
   // Content slides
   for (let i = 0; i < slides.length; i++) {
     const { title, bullets } = slides[i]
     const slide = pptx.addSlide()
-    const imgUrl = slideImgs[i]
-    
+    const imgData = images[i] || null
+
     slide.background = { color: tc.bg }
     slide.addShape('rect', { x: 0, y: 0, w: 0.08, h: 5.63, fill: { color: tc.accent } })
 
-    if (imgUrl) {
+    if (imgData) {
       if (i % 2 === 0) {
         // Image on Right
-        slide.addImage({ path: imgUrl, x: 5.8, y: 1.02, w: 3.7, h: 4.2, sizing: { type: 'cover' } })
+        slide.addImage({ data: imgData, x: 5.8, y: 1.02, w: 3.7, h: 4.2, sizing: { type: 'cover' } })
         slide.addText(title, { x: 0.3, y: 0.22, w: 9.2, h: 0.75, fontSize: 24, bold: true, color: tc.title, fontFace: tc.tf })
         slide.addShape('line', { x: 0.3, y: 1.02, w: 5.2, h: 0, line: { color: tc.accent, width: 1 } })
         slide.addText(bullets.map(b => `• ${b}`).join('\n'), { x: 0.3, y: 1.18, w: 5.2, h: 4.1, fontSize: 15, color: tc.body, fontFace: tc.bf, valign: 'top', paraSpaceAfter: 8 })
       } else {
         // Image on Left
-        slide.addImage({ path: imgUrl, x: 0.3, y: 1.02, w: 3.7, h: 4.2, sizing: { type: 'cover' } })
+        slide.addImage({ data: imgData, x: 0.3, y: 1.02, w: 3.7, h: 4.2, sizing: { type: 'cover' } })
         slide.addText(title, { x: 0.3, y: 0.22, w: 9.2, h: 0.75, fontSize: 24, bold: true, color: tc.title, fontFace: tc.tf })
         slide.addShape('line', { x: 4.3, y: 1.02, w: 5.2, h: 0, line: { color: tc.accent, width: 1 } })
         slide.addText(bullets.map(b => `• ${b}`).join('\n'), { x: 4.3, y: 1.18, w: 5.2, h: 4.1, fontSize: 15, color: tc.body, fontFace: tc.bf, valign: 'top', paraSpaceAfter: 8 })
@@ -211,7 +272,7 @@ async function buildPptx(presentationTitle, slides, subtitle, conclusionBullets,
       slide.addShape('line', { x: 0.3, y: 1.02, w: 9.2, h: 0, line: { color: tc.accent, width: 1 } })
       slide.addText(bullets.map(b => `• ${b}`).join('\n'), { x: 0.3, y: 1.18, w: 9.2, h: 4.1, fontSize: 15, color: tc.body, fontFace: tc.bf, valign: 'top', paraSpaceAfter: 8 })
     }
-    
+
     slide.addText(`${i + 2}`, { x: 9.1, y: 5.15, w: 0.6, h: 0.3, fontSize: 10, color: tc.accent, fontFace: tc.bf, align: 'right' })
   }
 
@@ -219,12 +280,13 @@ async function buildPptx(presentationTitle, slides, subtitle, conclusionBullets,
   const cs = pptx.addSlide()
   cs.background = { color: tc.bg }
   cs.addShape('rect', { x: 0, y: 0, w: 0.08, h: 5.63, fill: { color: tc.accent } })
-  
+
+  const conclusionImg = images[slides.length] || null
   if (conclusionImg) {
     cs.addText('Key Takeaways', { x: 0.3, y: 0.22, w: 9.2, h: 0.75, fontSize: 24, bold: true, color: tc.title, fontFace: tc.tf })
     cs.addShape('line', { x: 0.3, y: 1.02, w: 5.2, h: 0, line: { color: tc.accent, width: 1 } })
     cs.addText(conclusionBullets.map(b => `• ${b}`).join('\n'), { x: 0.3, y: 1.18, w: 5.2, h: 4.1, fontSize: 16, color: tc.body, fontFace: tc.bf, valign: 'top', paraSpaceAfter: 14 })
-    cs.addImage({ path: conclusionImg, x: 5.8, y: 1.02, w: 3.7, h: 4.2, sizing: { type: 'cover' } })
+    cs.addImage({ data: conclusionImg, x: 5.8, y: 1.02, w: 3.7, h: 4.2, sizing: { type: 'cover' } })
   } else {
     cs.addText('Key Takeaways', { x: 0.3, y: 0.22, w: 9.2, h: 0.75, fontSize: 24, bold: true, color: tc.title, fontFace: tc.tf })
     cs.addShape('line', { x: 0.3, y: 1.02, w: 9.2, h: 0, line: { color: tc.accent, width: 1 } })
@@ -258,9 +320,15 @@ export async function POST(request) {
     const { topic, slideCount = 7 } = body
     if (!topic?.trim()) return NextResponse.json({ error: 'Topic is required' }, { status: 400 })
 
-    const user = await prisma.user.findUnique({ where: { id: payload.userId } })
-    if (!user || user.credits < 1) {
-      return NextResponse.json({ error: 'No credits remaining. Please buy more.' }, { status: 403 })
+    let user = await prisma.user.findUnique({ where: { id: payload.userId } })
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 401 })
+    
+    // Give 100 free credits if user is out or doesn't have enough
+    if (user.credits < 1) {
+      user = await prisma.user.update({
+        where: { id: payload.userId },
+        data: { credits: 100 }
+      })
     }
 
     // Deduct credit upfront — restored if generation fails
@@ -271,11 +339,12 @@ export async function POST(request) {
         const send = (data) => sendEvent(controller, data)
         try {
           send({ step: 1, message: 'Planning your slide structure...' })
-          const { presentationTitle, subtitle, slides, conclusionBullets, suggestedTheme } = await generateContent(topic, Number(slideCount))
+          const { presentationTitle, subtitle, slides, conclusionBullets, suggestedTheme, mainImageQuery } = await generateContent(topic, Number(slideCount))
 
           send({ step: 2, message: 'Writing slide content...' })
 
-          send({ step: 3, message: 'Finalizing content...' })
+          send({ step: 3, message: 'Finding perfect images...' })
+          const previewImages = await fetchImagesFromSerper(mainImageQuery || presentationTitle || 'presentation', slides.length + 1)
 
           // Return all slide data to frontend — NO upload, NO file yet
           send({
@@ -288,12 +357,14 @@ export async function POST(request) {
               subtitle,
               slides,
               conclusionBullets,
+              mainImageQuery,
+              imageUrls: previewImages,
               slideCount: slides.length + 2,
             },
           })
           controller.close()
         } catch (err) {
-          console.error('[generate]', err)
+          console.error('[deckiq:generate] Critical generation error:', err)
           try { await prisma.user.update({ where: { id: payload.userId }, data: { credits: { increment: 1 } } }) } catch { }
           send({ step: 'error', message: 'Generation failed. Your credit has been restored.' })
           controller.close()
@@ -310,11 +381,11 @@ export async function POST(request) {
   // User confirmed theme — build PPTX, upload, save DB, return URL
   if (action === 'confirm') {
     const { theme, slidesData } = body
-    const { topic, title: presentationTitle, subtitle, slides, conclusionBullets } = slidesData
+    const { topic, title: presentationTitle, subtitle, slides, conclusionBullets, mainImageQuery } = slidesData
 
     try {
       // Build PPTX with AI-generated title
-      const buffer = await buildPptx(presentationTitle || topic, slides, subtitle, conclusionBullets, theme)
+      const buffer = await buildPptx(mainImageQuery || topic, presentationTitle || topic, slides, subtitle, conclusionBullets, theme)
 
       // Upload to Supabase Storage
       const sessionId = nanoid()
@@ -348,8 +419,8 @@ export async function POST(request) {
 
       return NextResponse.json({ success: true, fileUrl: publicUrl, pptId: ppt.id, credits: updatedUser.credits })
     } catch (err) {
-      console.error('[confirm]', err)
-      return NextResponse.json({ error: err.message }, { status: 500 })
+      console.error('[deckiq:confirm] Critical error building/saving PPTX:', err)
+      return NextResponse.json({ error: 'Failed to build presentation' }, { status: 500 })
     }
   }
 

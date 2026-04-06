@@ -128,95 +128,23 @@ export default function BuyCreditsModal({ onClose, authFetch }) {
           transition={{ duration: 0.25, ease: 'easeOut' }}
           className="bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/20 dark:border-dark-text-muted/20 rounded-card p-8 w-full max-w-lg"
         >
-          {success ? (
-            <div className="text-center py-4">
-              <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                Credits Added!
-              </h3>
-              <p className="text-sm text-light-text-muted dark:text-dark-text-muted">
-                +{success.credits} credits added. You now have{' '}
-                <span className="text-accent-primary font-medium">{success.newTotal} credits</span>.
-              </p>
-              <button
-                onClick={onClose}
-                className="mt-6 bg-accent-primary hover:bg-indigo-600 text-white font-medium py-2 px-6 rounded-component transition-colors duration-150 text-sm"
-              >
-                Start Generating
-              </button>
+          <div className="text-center py-6 px-4">
+            <div className="w-16 h-16 bg-accent-subtle-light dark:bg-accent-subtle-dark rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-2xl">🎉</span>
             </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-medium text-light-text-primary dark:text-dark-text-primary">
-                  Buy Credits
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="w-8 h-8 flex items-center justify-center rounded-component text-light-text-muted dark:text-dark-text-muted hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-elevated dark:hover:bg-dark-bg-elevated transition-colors"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {PACKS.map((pack) => (
-                  <div
-                    key={pack.id}
-                    className={`relative text-center p-4 rounded-card border-2 transition-colors ${
-                      pack.popular
-                        ? 'border-accent-primary bg-accent-subtle-light dark:bg-accent-subtle-dark'
-                        : 'border-light-text-muted/20 dark:border-dark-text-muted/20 bg-light-bg-primary dark:bg-dark-bg-primary'
-                    }`}
-                  >
-                    {pack.popular && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent-primary text-white text-xs px-2 py-0.5 rounded-full">
-                        Popular
-                      </span>
-                    )}
-                    <p className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-1">
-                      {pack.name}
-                    </p>
-                    <p className="text-3xl font-medium text-accent-primary mb-0.5">
-                      {pack.credits}
-                    </p>
-                    <p className="text-xs text-light-text-muted dark:text-dark-text-muted mb-3">
-                      credits
-                    </p>
-                    <p className="text-base font-medium text-light-text-primary dark:text-dark-text-primary mb-0.5">
-                      {pack.price}
-                    </p>
-                    <p className="text-xs text-light-text-muted dark:text-dark-text-muted mb-3">
-                      {pack.description}
-                    </p>
-                    <button
-                      onClick={() => handleBuy(pack)}
-                      disabled={loading !== null}
-                      className={`w-full py-1.5 px-3 rounded-component text-xs font-medium transition-colors duration-150 ${
-                        pack.popular
-                          ? 'bg-accent-primary hover:bg-indigo-600 text-white disabled:opacity-60'
-                          : 'border border-light-text-muted/30 dark:border-dark-text-muted/30 hover:bg-light-bg-elevated dark:hover:bg-dark-bg-elevated text-light-text-primary dark:text-dark-text-primary disabled:opacity-60'
-                      }`}
-                    >
-                      {loading === pack.id ? (
-                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mx-auto" />
-                      ) : 'Buy'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-xs text-center text-light-text-muted dark:text-dark-text-muted">
-                Payments powered by Razorpay. All purchases are non-refundable.
-              </p>
-            </>
-          )}
+            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
+              Payments Coming Soon!
+            </h2>
+            <p className="text-base text-light-text-muted dark:text-dark-text-muted mb-8 leading-relaxed max-w-sm mx-auto">
+              We are not currently integrated with our payment provider yet. Because of this, we are giving everyone <strong className="text-accent-primary font-bold">100 free credits</strong> to generate unlimited presentations! <br/><span className="text-xs text-accent-primary mt-2 block uppercase tracking-wide font-medium">Limited offer only valid until end of April</span>
+            </p>
+            <button
+              onClick={onClose}
+              className="bg-accent-primary hover:bg-indigo-600 focus:ring-4 focus:ring-indigo-500/20 outline-none text-white font-medium py-3 px-8 rounded-component transition-all duration-200 text-sm shadow-md"
+            >
+              Awesome, thanks!
+            </button>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
