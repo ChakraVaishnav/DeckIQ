@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 100, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 }
 
@@ -156,10 +156,9 @@ function ScrollSequence() {
   // ── Feature cards (6 cards, start from center then fan out) ─────────────────
   // Start right as the 3 step cards are leaving, so there's no blank gap.
   // Goal: when step cards are gone (~0.60), features are already visible but small in center.
-  // Start slightly visible (not fully transparent) to avoid a "blank" beat.
-  const featureOpacityAll = useTransform(scrollYProgress, [0.56, 0.64], [0.15, 1])
+  const featureOpacityAll = useTransform(scrollYProgress, [0.54, 0.64], [0, 1])
   // Keep them small when they first appear, then grow as you continue scrolling.
-  const featureScaleAll = useTransform(scrollYProgress, [0.58, 0.82], [0.22, 1])
+  const featureScaleAll = useTransform(scrollYProgress, [0.58, 0.82], [0.12, 1])
   // Fan-out starts a bit later so they first "sit" in center.
   const featureT = useTransform(scrollYProgress, [0.60, 0.90], [0, 1])
 
@@ -203,6 +202,7 @@ function ScrollSequence() {
   return (
     <section
       ref={containerRef}
+      id="how-it-works"
       className="relative h-[500vh] bg-light-bg-primary dark:bg-dark-bg-primary"
     >
       <div
@@ -351,6 +351,7 @@ function ScrollSequence() {
                       x: mv.x,
                       y: mv.y,
                       scale: featureScaleAll,
+                      opacity: featureOpacityAll,
                       willChange: 'transform, opacity',
                     }}
                     className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 hover:border-accent-primary/30 rounded-card p-5 shadow-lg hover:shadow-xl transition-all duration-200"
@@ -376,89 +377,7 @@ function ScrollSequence() {
   )
 }
 
-function StaticHowItWorks() {
-  return (
-    <section
-      id="how-it-works"
-      className="bg-light-bg-primary dark:bg-dark-bg-primary py-20"
-    >
-      <div className="w-full px-6 sm:px-10 lg:px-16">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-            Three steps to your perfect deck
-          </h2>
-          <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-xl mx-auto">
-            From idea to polished presentation in under a minute.
-          </p>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {STEPS.map((step) => (
-            <div
-              key={step.num}
-              className="relative bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-6 shadow-lg"
-            >
-              <div className="absolute -bottom-4 -right-2 text-8xl font-medium text-accent-primary/8 dark:text-accent-primary/10 select-none leading-none pointer-events-none">
-                {step.num}
-              </div>
-              <div className="w-10 h-10 rounded-component bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center mb-4">
-                <span className="text-accent-primary text-sm font-medium">{step.num}</span>
-              </div>
-              <h3 className="text-md font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                {step.title}
-              </h3>
-              <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                {step.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center mt-14 mb-8">
-          <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-            Features
-          </h2>
-          <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-2xl mx-auto">
-            Everything you need to present better
-          </p>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-5 shadow-lg"
-            >
-              <div className="w-10 h-10 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center text-accent-primary mb-4">
-                {f.icon}
-              </div>
-              <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-1.5">
-                {f.title}
-              </h3>
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                {f.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 export default function Hero() {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)')
-    const handleChange = () => setIsMobile(mediaQuery.matches)
-
-    handleChange()
-    mediaQuery.addEventListener('change', handleChange)
-
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
   return (
     <>
       <section className="relative pt-32 pb-32 bg-light-bg-primary dark:bg-dark-bg-primary overflow-x-hidden">
@@ -517,7 +436,8 @@ export default function Hero() {
           </motion.div>
         </div>
       </section>
-      {isMobile ? <StaticHowItWorks /> : <ScrollSequence />}
+
+      <ScrollSequence />
     </>
   )
 }

@@ -92,9 +92,14 @@ const THEMES = {
 
 // ─── Content generation ───────────────────────────────────────────────────
 async function generateContent(topic, slideCount) {
+
+  // Fetch real-time web context
+  const webContext = await fetchWebContextFromSerper(topic)
+  const contextPrompt = webContext ? `\n\nRecent Web Context for accuracy:\n${webContext}` : ''
+
   // 1. ONE compressed API call for all presentation metadata and structure
   const masterRaw = await callGroq(
-    `Create a highly professional presentation outline about "${topic}".
+    `Create a highly professional presentation outline about "${topic}".${contextPrompt}
 Output ONLY valid JSON matching this exact structure:
 {
   "presentationTitle": "Engaging 5-8 word title",
@@ -132,7 +137,7 @@ Output ONLY valid JSON matching this exact structure:
   const slides = await Promise.all(
     titles.map(async (title) => {
       const raw = await callGroq(
-        `Write exactly 5 concise bullet points for a slide titled "${title}" inside a deck about "${presentationTitle}".
+        `Write exactly 5 concise bullet points for a slide titled "${title}" inside a deck about "${presentationTitle}".${contextPrompt}
 Output ONLY valid JSON matching this exact structure:
 {
   "imageKeyword": "1-2 words representing this slide for a stock photo search",
@@ -143,7 +148,7 @@ Output ONLY valid JSON matching this exact structure:
     "Fourth key consideration",
     "Fifth concluding point"
   ]
-}`, 150
+}`, 280
       )
       const data = parseJsonObject(raw)
       let bullets = Array.isArray(data.bullets) ? data.bullets : parseJsonArray(raw)
@@ -158,6 +163,22 @@ Output ONLY valid JSON matching this exact structure:
   return { presentationTitle, subtitle, slides, conclusionBullets, suggestedTheme, mainImageQuery }
 }
 
+async function fetchWebContextFromSerper(query) {
+  const apiKey = process.env.SERPER_API_KEY
+  try {
+    const res = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q: query })
+    })
+    const data = await res.json()
+    if (data.organic && data.organic.length > 0) {
+      return data.organic.slice(0, 3).map(r => r.snippet).join('\n')
+    }
+  } catch (err) {}
+  return ''
+}
+
 async function fetchImagesFromSerper(query, num = 10) {
   const apiKey = process.env.SERPER_API_KEY
 
@@ -170,6 +191,7 @@ async function fetchImagesFromSerper(query, num = 10) {
       },
       body: JSON.stringify({ q: query, num })
     })
+    if (!res.ok) return []
     const data = await res.json()
     if (data.images && data.images.length > 0) {
       return data.images.map(img => img.imageUrl)
@@ -183,29 +205,29 @@ async function getValidBase64Images(query, neededCount) {
   // Ask for extra URLs in case many are broken hotlinks
   const urls = await fetchImagesFromSerper(query, neededCount + 10)
   const validImages = []
-  
+
   // Try to fetch them in parallel with a strict 2s timeout
   const promises = urls.map(async (url) => {
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 2000)
-      
-      const res = await fetch(url, { 
-        signal: controller.signal, 
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36' } 
+
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36' }
       })
       clearTimeout(timeoutId)
-      
+
       if (!res.ok) return null
-      
+
       const contentType = res.headers.get('content-type')
       if (!contentType || !contentType.startsWith('image/')) return null
-      
+
       // Some PPTX viewers fail on webp, standard jpegs/pngs are safer but we embed everything we can get
       const format = contentType.split('/')[1] || 'jpeg'
       const arrayBuffer = await res.arrayBuffer()
       const base64 = Buffer.from(arrayBuffer).toString('base64')
-      
+
       return `image/${format};base64,${base64}`
     } catch {
       return null
@@ -218,7 +240,7 @@ async function getValidBase64Images(query, neededCount) {
     if (b64) validImages.push(b64)
     if (validImages.length >= neededCount) break
   }
-  
+
   return validImages
 }
 
@@ -322,7 +344,7 @@ export async function POST(request) {
 
     let user = await prisma.user.findUnique({ where: { id: payload.userId } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 401 })
-    
+
     // Give 100 free credits if user is out or doesn't have enough
     if (user.credits < 1) {
       user = await prisma.user.update({

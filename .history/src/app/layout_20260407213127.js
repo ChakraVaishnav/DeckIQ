@@ -29,13 +29,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <SmoothScroll>
-          <ThemeProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </ThemeProvider>
-        </SmoothScroll>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

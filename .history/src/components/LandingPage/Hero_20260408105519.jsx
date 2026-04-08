@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
@@ -137,7 +137,7 @@ function ScrollSequence() {
     scrollYProgress, [0.18, 0.28, 0.55, 0.60], [0, 1, 1, 0]
   )
   const stepY = useTransform(scrollYProgress, [0.18, 0.28], [40, 0])
-  const stepScale = useTransform(scrollYProgress, [0.18, 0.28], [0.5, 1.05])
+  const stepScale = useTransform(scrollYProgress, [0.18, 0.28], [0.82, 1])
 
   // Step card motion values (avoid calling hooks inside render loops)
   // Card 1: spreads left then exits off-screen left
@@ -153,15 +153,9 @@ function ScrollSequence() {
   const step3X = useTransform(scrollYProgress, [0.18, 0.30, 0.40, 0.55], [0, 380, 380, 1200])
   const step3Rotate = useTransform(scrollYProgress, [0.18, 0.40, 0.55], [0, 0, 45])
 
-  // ── Feature cards (6 cards, start from center then fan out) ─────────────────
-  // Start right as the 3 step cards are leaving, so there's no blank gap.
-  // Goal: when step cards are gone (~0.60), features are already visible but small in center.
-  // Start slightly visible (not fully transparent) to avoid a "blank" beat.
-  const featureOpacityAll = useTransform(scrollYProgress, [0.56, 0.64], [0.15, 1])
-  // Keep them small when they first appear, then grow as you continue scrolling.
-  const featureScaleAll = useTransform(scrollYProgress, [0.58, 0.82], [0.22, 1])
-  // Fan-out starts a bit later so they first "sit" in center.
-  const featureT = useTransform(scrollYProgress, [0.60, 0.90], [0, 1])
+  // ── Feature cards (6 cards, start stacked in the center then fan out) ──────
+  const featureGroupOpacity = useTransform(scrollYProgress, [0.46, 0.52], [0, 1])
+  const featureT = useTransform(scrollYProgress, [0.46, 0.66], [0, 1])
 
   const clamp01 = (v) => Math.min(1, Math.max(0, v))
   const staggerT = (v, index) => {
@@ -170,10 +164,16 @@ function ScrollSequence() {
     return clamp01((v - start) / (end - start))
   }
 
-  // Final grid offsets (relative). We animate transforms from center -> 0.
-  // Left/center/right columns and top/bottom rows.
-  const fx = [-360, 0, 360]
-  const fy = [-150, 150]
+  // Final 3×2 positions (relative offsets from center).
+  // These values are tuned for the current canvas width.
+  const pos = [
+    { x: -320, y: -150 },
+    { x: 0, y: -150 },
+    { x: 320, y: -150 },
+    { x: -320, y: 150 },
+    { x: 0, y: 150 },
+    { x: 320, y: 150 },
+  ]
 
   const f0t = useTransform(featureT, (v) => staggerT(v, 0))
   const f1t = useTransform(featureT, (v) => staggerT(v, 1))
@@ -182,27 +182,40 @@ function ScrollSequence() {
   const f4t = useTransform(featureT, (v) => staggerT(v, 4))
   const f5t = useTransform(featureT, (v) => staggerT(v, 5))
 
-  const f0x = useTransform(f0t, [0, 1], [-fx[0], 0])
-  const f0y = useTransform(f0t, [0, 1], [-fy[0], 0])
+  const f0x = useTransform(f0t, [0, 1], [0, pos[0].x])
+  const f0y = useTransform(f0t, [0, 1], [0, pos[0].y])
+  const f0s = useTransform(f0t, [0, 1], [0.06, 1])
+  const f0o = useTransform(f0t, [0, 1], [0, 1])
 
-  const f1x = useTransform(f1t, [0, 1], [-fx[1], 0])
-  const f1y = useTransform(f1t, [0, 1], [-fy[0], 0])
+  const f1x = useTransform(f1t, [0, 1], [0, pos[1].x])
+  const f1y = useTransform(f1t, [0, 1], [0, pos[1].y])
+  const f1s = useTransform(f1t, [0, 1], [0.06, 1])
+  const f1o = useTransform(f1t, [0, 1], [0, 1])
 
-  const f2x = useTransform(f2t, [0, 1], [-fx[2], 0])
-  const f2y = useTransform(f2t, [0, 1], [-fy[0], 0])
+  const f2x = useTransform(f2t, [0, 1], [0, pos[2].x])
+  const f2y = useTransform(f2t, [0, 1], [0, pos[2].y])
+  const f2s = useTransform(f2t, [0, 1], [0.06, 1])
+  const f2o = useTransform(f2t, [0, 1], [0, 1])
 
-  const f3x = useTransform(f3t, [0, 1], [-fx[0], 0])
-  const f3y = useTransform(f3t, [0, 1], [-fy[1], 0])
+  const f3x = useTransform(f3t, [0, 1], [0, pos[3].x])
+  const f3y = useTransform(f3t, [0, 1], [0, pos[3].y])
+  const f3s = useTransform(f3t, [0, 1], [0.06, 1])
+  const f3o = useTransform(f3t, [0, 1], [0, 1])
 
-  const f4x = useTransform(f4t, [0, 1], [-fx[1], 0])
-  const f4y = useTransform(f4t, [0, 1], [-fy[1], 0])
+  const f4x = useTransform(f4t, [0, 1], [0, pos[4].x])
+  const f4y = useTransform(f4t, [0, 1], [0, pos[4].y])
+  const f4s = useTransform(f4t, [0, 1], [0.06, 1])
+  const f4o = useTransform(f4t, [0, 1], [0, 1])
 
-  const f5x = useTransform(f5t, [0, 1], [-fx[2], 0])
-  const f5y = useTransform(f5t, [0, 1], [-fy[1], 0])
+  const f5x = useTransform(f5t, [0, 1], [0, pos[5].x])
+  const f5y = useTransform(f5t, [0, 1], [0, pos[5].y])
+  const f5s = useTransform(f5t, [0, 1], [0.06, 1])
+  const f5o = useTransform(f5t, [0, 1], [0, 1])
 
   return (
     <section
       ref={containerRef}
+      id="how-it-works"
       className="relative h-[500vh] bg-light-bg-primary dark:bg-dark-bg-primary"
     >
       <div
@@ -327,22 +340,22 @@ function ScrollSequence() {
           {/* ─── 6 Feature cards (Start from CENTER then go to positions) ─────── */}
           <motion.div
             style={{
-              opacity: featureOpacityAll,
+              opacity: featureGroupOpacity,
               position: 'absolute',
               willChange: 'transform, opacity',
               zIndex: 10,
             }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="grid grid-cols-3 gap-6 w-full max-w-240 px-4">
+            <div className="relative w-full max-w-240 h-95 px-4">
               {FEATURES.map((f, i) => {
                 const mv =
-                  i === 0 ? { x: f0x, y: f0y } :
-                  i === 1 ? { x: f1x, y: f1y } :
-                  i === 2 ? { x: f2x, y: f2y } :
-                  i === 3 ? { x: f3x, y: f3y } :
-                  i === 4 ? { x: f4x, y: f4y } :
-                  { x: f5x, y: f5y }
+                  i === 0 ? { x: f0x, y: f0y, scale: f0s, opacity: f0o } :
+                  i === 1 ? { x: f1x, y: f1y, scale: f1s, opacity: f1o } :
+                  i === 2 ? { x: f2x, y: f2y, scale: f2s, opacity: f2o } :
+                  i === 3 ? { x: f3x, y: f3y, scale: f3s, opacity: f3o } :
+                  i === 4 ? { x: f4x, y: f4y, scale: f4s, opacity: f4o } :
+                  { x: f5x, y: f5y, scale: f5s, opacity: f5o }
 
                 return (
                   <motion.div
@@ -350,10 +363,15 @@ function ScrollSequence() {
                     style={{
                       x: mv.x,
                       y: mv.y,
-                      scale: featureScaleAll,
+                      scale: mv.scale,
+                      opacity: mv.opacity,
                       willChange: 'transform, opacity',
+                      position: 'absolute',
+                      left: '50%',
+                      top: '50%',
+                      transform: 'translate(-50%, -50%)',
                     }}
-                    className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 hover:border-accent-primary/30 rounded-card p-5 shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="group w-72 bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 hover:border-accent-primary/30 rounded-card p-5 shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <div className="w-10 h-10 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center text-accent-primary mb-4">
                       {f.icon}
@@ -376,89 +394,7 @@ function ScrollSequence() {
   )
 }
 
-function StaticHowItWorks() {
-  return (
-    <section
-      id="how-it-works"
-      className="bg-light-bg-primary dark:bg-dark-bg-primary py-20"
-    >
-      <div className="w-full px-6 sm:px-10 lg:px-16">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-            Three steps to your perfect deck
-          </h2>
-          <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-xl mx-auto">
-            From idea to polished presentation in under a minute.
-          </p>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {STEPS.map((step) => (
-            <div
-              key={step.num}
-              className="relative bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-6 shadow-lg"
-            >
-              <div className="absolute -bottom-4 -right-2 text-8xl font-medium text-accent-primary/8 dark:text-accent-primary/10 select-none leading-none pointer-events-none">
-                {step.num}
-              </div>
-              <div className="w-10 h-10 rounded-component bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center mb-4">
-                <span className="text-accent-primary text-sm font-medium">{step.num}</span>
-              </div>
-              <h3 className="text-md font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                {step.title}
-              </h3>
-              <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                {step.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center mt-14 mb-8">
-          <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-            Features
-          </h2>
-          <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-2xl mx-auto">
-            Everything you need to present better
-          </p>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-5 shadow-lg"
-            >
-              <div className="w-10 h-10 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center text-accent-primary mb-4">
-                {f.icon}
-              </div>
-              <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-1.5">
-                {f.title}
-              </h3>
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                {f.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 export default function Hero() {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)')
-    const handleChange = () => setIsMobile(mediaQuery.matches)
-
-    handleChange()
-    mediaQuery.addEventListener('change', handleChange)
-
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
   return (
     <>
       <section className="relative pt-32 pb-32 bg-light-bg-primary dark:bg-dark-bg-primary overflow-x-hidden">
@@ -517,7 +453,8 @@ export default function Hero() {
           </motion.div>
         </div>
       </section>
-      {isMobile ? <StaticHowItWorks /> : <ScrollSequence />}
+
+      <ScrollSequence />
     </>
   )
 }

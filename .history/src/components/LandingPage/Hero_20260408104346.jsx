@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
@@ -137,7 +137,7 @@ function ScrollSequence() {
     scrollYProgress, [0.18, 0.28, 0.55, 0.60], [0, 1, 1, 0]
   )
   const stepY = useTransform(scrollYProgress, [0.18, 0.28], [40, 0])
-  const stepScale = useTransform(scrollYProgress, [0.18, 0.28], [0.5, 1.05])
+  const stepScale = useTransform(scrollYProgress, [0.18, 0.28], [0.82, 1])
 
   // Step card motion values (avoid calling hooks inside render loops)
   // Card 1: spreads left then exits off-screen left
@@ -153,56 +153,16 @@ function ScrollSequence() {
   const step3X = useTransform(scrollYProgress, [0.18, 0.30, 0.40, 0.55], [0, 380, 380, 1200])
   const step3Rotate = useTransform(scrollYProgress, [0.18, 0.40, 0.55], [0, 0, 45])
 
-  // ── Feature cards (6 cards, start from center then fan out) ─────────────────
-  // Start right as the 3 step cards are leaving, so there's no blank gap.
-  // Goal: when step cards are gone (~0.60), features are already visible but small in center.
-  // Start slightly visible (not fully transparent) to avoid a "blank" beat.
-  const featureOpacityAll = useTransform(scrollYProgress, [0.56, 0.64], [0.15, 1])
-  // Keep them small when they first appear, then grow as you continue scrolling.
-  const featureScaleAll = useTransform(scrollYProgress, [0.58, 0.82], [0.22, 1])
-  // Fan-out starts a bit later so they first "sit" in center.
-  const featureT = useTransform(scrollYProgress, [0.60, 0.90], [0, 1])
-
-  const clamp01 = (v) => Math.min(1, Math.max(0, v))
-  const staggerT = (v, index) => {
-    const start = index * 0.09
-    const end = start + 0.45
-    return clamp01((v - start) / (end - start))
-  }
-
-  // Final grid offsets (relative). We animate transforms from center -> 0.
-  // Left/center/right columns and top/bottom rows.
-  const fx = [-360, 0, 360]
-  const fy = [-150, 150]
-
-  const f0t = useTransform(featureT, (v) => staggerT(v, 0))
-  const f1t = useTransform(featureT, (v) => staggerT(v, 1))
-  const f2t = useTransform(featureT, (v) => staggerT(v, 2))
-  const f3t = useTransform(featureT, (v) => staggerT(v, 3))
-  const f4t = useTransform(featureT, (v) => staggerT(v, 4))
-  const f5t = useTransform(featureT, (v) => staggerT(v, 5))
-
-  const f0x = useTransform(f0t, [0, 1], [-fx[0], 0])
-  const f0y = useTransform(f0t, [0, 1], [-fy[0], 0])
-
-  const f1x = useTransform(f1t, [0, 1], [-fx[1], 0])
-  const f1y = useTransform(f1t, [0, 1], [-fy[0], 0])
-
-  const f2x = useTransform(f2t, [0, 1], [-fx[2], 0])
-  const f2y = useTransform(f2t, [0, 1], [-fy[0], 0])
-
-  const f3x = useTransform(f3t, [0, 1], [-fx[0], 0])
-  const f3y = useTransform(f3t, [0, 1], [-fy[1], 0])
-
-  const f4x = useTransform(f4t, [0, 1], [-fx[1], 0])
-  const f4y = useTransform(f4t, [0, 1], [-fy[1], 0])
-
-  const f5x = useTransform(f5t, [0, 1], [-fx[2], 0])
-  const f5y = useTransform(f5t, [0, 1], [-fy[1], 0])
+  // ── Feature cards (6 cards, zoom in from small to full size) ──────────────────
+  // Master feature visibility (zoom in from small scale)
+  const featureOpacity = useTransform(scrollYProgress, [0.46, 0.62], [0, 1])
+  const featureY = useTransform(scrollYProgress, [0.46, 0.62], [220, 0])
+  const featureScale = useTransform(scrollYProgress, [0.46, 0.62], [0.25, 1])
 
   return (
     <section
       ref={containerRef}
+      id="how-it-works"
       className="relative h-[500vh] bg-light-bg-primary dark:bg-dark-bg-primary"
     >
       <div
@@ -237,7 +197,7 @@ function ScrollSequence() {
         </motion.div>
 
         {/* ── Canvas ── */}
-        <div className="relative w-full max-w-275 mx-auto mt-20 h-130 flex items-center justify-center" style={{ perspective: '1200px' }}>
+        <div className="relative w-full max-w-[1100px] mx-auto mt-20 h-[520px] flex items-center justify-center" style={{ perspective: '1200px' }}>
 
           {/* ─── Fake PPT deck (only visible at start, gone before cards spread) ─── */}
           <motion.div
@@ -261,7 +221,7 @@ function ScrollSequence() {
                 <div className="space-y-2">
                   {['Renewable innovation', 'Carbon capture tech', 'Smart grid systems'].map((item, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-accent-primary shrink-0" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-accent-primary flex-shrink-0" />
                       <div className="text-xs text-dark-text-muted">{item}</div>
                     </div>
                   ))}
@@ -324,49 +284,39 @@ function ScrollSequence() {
             </motion.div>
           ))}
 
-          {/* ─── 6 Feature cards (Start from CENTER then go to positions) ─────── */}
+          {/* ─── 6 Feature cards (Come from BOTTOM) ──────────────────────────── */}
+          {/* 
+            All 6 feature cards emerge from the bottom of the screen
+            As the 3 step cards move away (left, up, right)
+          */}
           <motion.div
-            style={{
-              opacity: featureOpacityAll,
+            style={{ 
+              opacity: featureOpacity, 
+              scale: featureScale, 
+              y: featureY,
               position: 'absolute',
               willChange: 'transform, opacity',
               zIndex: 10,
             }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="grid grid-cols-3 gap-6 w-full max-w-240 px-4">
-              {FEATURES.map((f, i) => {
-                const mv =
-                  i === 0 ? { x: f0x, y: f0y } :
-                  i === 1 ? { x: f1x, y: f1y } :
-                  i === 2 ? { x: f2x, y: f2y } :
-                  i === 3 ? { x: f3x, y: f3y } :
-                  i === 4 ? { x: f4x, y: f4y } :
-                  { x: f5x, y: f5y }
-
-                return (
-                  <motion.div
-                    key={f.title}
-                    style={{
-                      x: mv.x,
-                      y: mv.y,
-                      scale: featureScaleAll,
-                      willChange: 'transform, opacity',
-                    }}
-                    className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 hover:border-accent-primary/30 rounded-card p-5 shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center text-accent-primary mb-4">
-                      {f.icon}
-                    </div>
-                    <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-1.5">
-                      {f.title}
-                    </h3>
-                    <p className="text-xs text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                      {f.desc}
-                    </p>
-                  </motion.div>
-                )
-              })}
+            <div className="grid grid-cols-3 gap-6 w-full max-w-[960px] px-4">
+              {FEATURES.map((f) => (
+                <div
+                  key={f.title}
+                  className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 hover:border-accent-primary/30 rounded-card p-5 shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <div className="w-10 h-10 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center text-accent-primary mb-4">
+                    {f.icon}
+                  </div>
+                  <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-1.5">
+                    {f.title}
+                  </h3>
+                  <p className="text-xs text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+                    {f.desc}
+                  </p>
+                </div>
+              ))}
             </div>
           </motion.div>
 
@@ -376,89 +326,7 @@ function ScrollSequence() {
   )
 }
 
-function StaticHowItWorks() {
-  return (
-    <section
-      id="how-it-works"
-      className="bg-light-bg-primary dark:bg-dark-bg-primary py-20"
-    >
-      <div className="w-full px-6 sm:px-10 lg:px-16">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-            Three steps to your perfect deck
-          </h2>
-          <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-xl mx-auto">
-            From idea to polished presentation in under a minute.
-          </p>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {STEPS.map((step) => (
-            <div
-              key={step.num}
-              className="relative bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-6 shadow-lg"
-            >
-              <div className="absolute -bottom-4 -right-2 text-8xl font-medium text-accent-primary/8 dark:text-accent-primary/10 select-none leading-none pointer-events-none">
-                {step.num}
-              </div>
-              <div className="w-10 h-10 rounded-component bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center mb-4">
-                <span className="text-accent-primary text-sm font-medium">{step.num}</span>
-              </div>
-              <h3 className="text-md font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                {step.title}
-              </h3>
-              <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                {step.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center mt-14 mb-8">
-          <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
-            Features
-          </h2>
-          <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-2xl mx-auto">
-            Everything you need to present better
-          </p>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-5 shadow-lg"
-            >
-              <div className="w-10 h-10 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center text-accent-primary mb-4">
-                {f.icon}
-              </div>
-              <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-1.5">
-                {f.title}
-              </h3>
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                {f.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 export default function Hero() {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)')
-    const handleChange = () => setIsMobile(mediaQuery.matches)
-
-    handleChange()
-    mediaQuery.addEventListener('change', handleChange)
-
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
   return (
     <>
       <section className="relative pt-32 pb-32 bg-light-bg-primary dark:bg-dark-bg-primary overflow-x-hidden">
@@ -517,7 +385,8 @@ export default function Hero() {
           </motion.div>
         </div>
       </section>
-      {isMobile ? <StaticHowItWorks /> : <ScrollSequence />}
+
+      <ScrollSequence />
     </>
   )
 }

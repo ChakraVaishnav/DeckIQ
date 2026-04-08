@@ -1,5 +1,6 @@
 import Navbar from '@/components/LandingPage/Navbar'
 import Hero from '@/components/LandingPage/Hero'
+import Features from '@/components/LandingPage/Features'
 import ThemeShowcase from '@/components/LandingPage/ThemeShowcase'
 import Pricing from '@/components/LandingPage/Pricing'
 import FAQ from '@/components/LandingPage/FAQ'
@@ -17,6 +18,7 @@ export default function Home() {
     <main>
       <Navbar />
       <Hero />
+      <Features />
       <ThemeShowcase />
       <Pricing />
       <FAQ />
