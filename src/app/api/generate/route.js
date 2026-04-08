@@ -90,6 +90,18 @@ const THEMES = {
   desert_sand: { bg: 'EDC9AF', title: '4A3C31', body: '614A36', accent: 'CC7722', tf: 'Calibri', bf: 'Calibri' },
 }
 
+// ─── Topic safety guardrails ──────────────────────────────────────────────
+const DISALLOWED_TOPIC_PATTERNS = [
+  /\b(porn|porno|pornography|xxx|nsfw|nude|nudity|erotic|fetish)\b/i,
+  /\b(onlyfans|camgirl|camboy|strip|stripper|escort|brothel|prostitution|hooker)\b/i,
+  /\b(adult\s+content|hardcore|softcore|incest|bestiality)\b/i,
+]
+
+function isDisallowedTopic(topic) {
+  const text = (topic || '').toLowerCase()
+  return DISALLOWED_TOPIC_PATTERNS.some((re) => re.test(text))
+}
+
 // ─── Content generation ───────────────────────────────────────────────────
 async function generateContent(topic, slideCount) {
 
@@ -342,6 +354,15 @@ export async function POST(request) {
     const { topic, slideCount = 7 } = body
     if (!topic?.trim()) return NextResponse.json({ error: 'Topic is required' }, { status: 400 })
 
+    if (isDisallowedTopic(topic)) {
+      return NextResponse.json(
+        {
+          error: 'Topic not allowed. We do not generate presentations for adult or explicit content. Please choose a different topic.'
+        },
+        { status: 400 }
+      )
+    }
+
     let user = await prisma.user.findUnique({ where: { id: payload.userId } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 401 })
 
@@ -404,6 +425,15 @@ export async function POST(request) {
   if (action === 'confirm') {
     const { theme, slidesData } = body
     const { topic, title: presentationTitle, subtitle, slides, conclusionBullets, mainImageQuery } = slidesData
+
+    if (isDisallowedTopic(topic)) {
+      return NextResponse.json(
+        {
+          error: 'Topic not allowed. We do not generate presentations for adult or explicit content. Please choose a different topic.'
+        },
+        { status: 400 }
+      )
+    }
 
     try {
       // Build PPTX with AI-generated title
