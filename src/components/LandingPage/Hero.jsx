@@ -99,12 +99,12 @@ const FEATURES = [
   },
 ]
 
-// Phase boundaries:
-// 0.00 – 0.10 : fake deck fades in, cards are invisible
-// 0.10 – 0.25 : fake deck fades OUT, 3 step cards spread in
-// 0.25 – 0.45 : 3 step cards hold steady, heading = "Three steps…"
-// 0.45 – 0.60 : 3 cards split → 6 feature cards emerge from behind each; heading morphs
-// 0.60 – 1.00 : feature cards hold
+// Phase boundaries (tightened):
+// 0.00 – 0.10 : fake deck fades in
+// 0.10 – 0.22 : fake deck fades out, step cards spread in
+// 0.22 – 0.38 : step cards hold — "Three steps" heading visible
+// 0.38 – 0.50 : step cards exit, feature cards emerge — much faster than before
+// 0.50 – 1.00 : feature cards hold
 
 function ScrollSequence() {
   const containerRef = useRef(null)
@@ -115,63 +115,44 @@ function ScrollSequence() {
   })
 
   // ── Fake deck ──────────────────────────────────────────────────────────────
-  // Visible only at the very start, gone before cards spread
-  const deckOpacity = useTransform(scrollYProgress, [0, 0.08, 0.18, 0.28], [0, 1, 1, 0])
-  const deckScale = useTransform(scrollYProgress, [0, 0.08, 0.22, 0.28], [0.92, 1, 1, 0.85])
-  const deckY = useTransform(scrollYProgress, [0, 0.08], [20, 0])
+  const deckOpacity = useTransform(scrollYProgress, [0, 0.07, 0.16, 0.24], [0, 1, 1, 0])
+  const deckScale  = useTransform(scrollYProgress, [0, 0.07, 0.20, 0.24], [0.92, 1, 1, 0.85])
+  const deckY      = useTransform(scrollYProgress, [0, 0.07], [20, 0])
 
   // ── Section headings ──────────────────────────────────────────────────────
-  const stepsTitleOpacity = useTransform(
-    scrollYProgress, [0.12, 0.20, 0.42, 0.50], [0, 1, 1, 0]
-  )
-  const stepsTitleY = useTransform(scrollYProgress, [0.12, 0.20], [24, 0])
+  const stepsTitleOpacity = useTransform(scrollYProgress, [0.10, 0.18, 0.35, 0.42], [0, 1, 1, 0])
+  const stepsTitleY       = useTransform(scrollYProgress, [0.10, 0.18], [24, 0])
 
-  const featuresTitleOpacity = useTransform(
-    scrollYProgress, [0.50, 0.60], [0, 1]
-  )
-  const featuresTitleY = useTransform(scrollYProgress, [0.50, 0.60], [24, 0])
+  const featuresTitleOpacity = useTransform(scrollYProgress, [0.44, 0.52], [0, 1])
+  const featuresTitleY       = useTransform(scrollYProgress, [0.44, 0.52], [24, 0])
 
   // ── 3 Step cards ──────────────────────────────────────────────────────────
-  // Cards stay visible, then move out of screen before fading
-  const stepOpacity = useTransform(
-    scrollYProgress, [0.18, 0.28, 0.55, 0.60], [0, 1, 1, 0]
-  )
-  const stepY = useTransform(scrollYProgress, [0.18, 0.28], [40, 0])
-  const stepScale = useTransform(scrollYProgress, [0.18, 0.28], [0.5, 1.05])
+  const stepOpacity = useTransform(scrollYProgress, [0.14, 0.22, 0.44, 0.50], [0, 1, 1, 0])
+  const stepY       = useTransform(scrollYProgress, [0.14, 0.22], [40, 0])
+  const stepScale   = useTransform(scrollYProgress, [0.14, 0.22], [0.5, 1.05])
 
-  // Step card motion values (avoid calling hooks inside render loops)
-  // Card 1: spreads left then exits off-screen left
-  const step1X = useTransform(scrollYProgress, [0.18, 0.30, 0.40, 0.55], [0, -380, -380, -1200])
-  const step1Rotate = useTransform(scrollYProgress, [0.18, 0.40, 0.55], [0, 0, -45])
+  const step1X      = useTransform(scrollYProgress, [0.14, 0.26, 0.36, 0.46], [0, -380, -380, -1200])
+  const step1Rotate = useTransform(scrollYProgress, [0.14, 0.36, 0.46], [0, 0, -45])
 
-  // Card 2: stays centered then exits off-screen top and scales down
-  const step2X = useTransform(scrollYProgress, [0.18, 0.30], [0, 0])
-  const step2Y = useTransform(scrollYProgress, [0.18, 0.28, 0.40, 0.55], [40, 0, 0, -900])
-  const step2Scale = useTransform(scrollYProgress, [0.18, 0.28, 0.40, 0.55], [0.82, 1, 1, 0.4])
+  const step2X      = useTransform(scrollYProgress, [0.14, 0.26], [0, 0])
+  const step2Y      = useTransform(scrollYProgress, [0.14, 0.22, 0.36, 0.46], [40, 0, 0, -900])
+  const step2Scale  = useTransform(scrollYProgress, [0.14, 0.22, 0.36, 0.46], [0.82, 1, 1, 0.4])
 
-  // Card 3: spreads right then exits off-screen right
-  const step3X = useTransform(scrollYProgress, [0.18, 0.30, 0.40, 0.55], [0, 380, 380, 1200])
-  const step3Rotate = useTransform(scrollYProgress, [0.18, 0.40, 0.55], [0, 0, 45])
+  const step3X      = useTransform(scrollYProgress, [0.14, 0.26, 0.36, 0.46], [0, 380, 380, 1200])
+  const step3Rotate = useTransform(scrollYProgress, [0.14, 0.36, 0.46], [0, 0, 45])
 
-  // ── Feature cards (6 cards, start from center then fan out) ─────────────────
-  // Start right as the 3 step cards are leaving, so there's no blank gap.
-  // Goal: when step cards are gone (~0.60), features are already visible but small in center.
-  // Start slightly visible (not fully transparent) to avoid a "blank" beat.
-  const featureOpacityAll = useTransform(scrollYProgress, [0.56, 0.64], [0.15, 1])
-  // Keep them small when they first appear, then grow as you continue scrolling.
-  const featureScaleAll = useTransform(scrollYProgress, [0.58, 0.82], [0.22, 1])
-  // Fan-out starts a bit later so they first "sit" in center.
-  const featureT = useTransform(scrollYProgress, [0.60, 0.90], [0, 1])
+  // ── Feature cards — appear much faster now ────────────────────────────────
+  const featureOpacityAll = useTransform(scrollYProgress, [0.44, 0.50], [0.15, 1])
+  const featureScaleAll   = useTransform(scrollYProgress, [0.46, 0.52], [0.22, 1])
+  const featureT          = useTransform(scrollYProgress, [0.50, 0.56], [0, 1])  // full fan-out in just 6% scroll
 
-  const clamp01 = (v) => Math.min(1, Math.max(0, v))
+  const clamp01  = (v) => Math.min(1, Math.max(0, v))
   const staggerT = (v, index) => {
-    const start = index * 0.09
-    const end = start + 0.45
+    const start = index * 0.07  // tighter stagger per card
+    const end   = start + 0.40
     return clamp01((v - start) / (end - start))
   }
 
-  // Final grid offsets (relative). We animate transforms from center -> 0.
-  // Left/center/right columns and top/bottom rows.
   const fx = [-360, 0, 360]
   const fy = [-150, 150]
 
@@ -184,26 +165,21 @@ function ScrollSequence() {
 
   const f0x = useTransform(f0t, [0, 1], [-fx[0], 0])
   const f0y = useTransform(f0t, [0, 1], [-fy[0], 0])
-
   const f1x = useTransform(f1t, [0, 1], [-fx[1], 0])
   const f1y = useTransform(f1t, [0, 1], [-fy[0], 0])
-
   const f2x = useTransform(f2t, [0, 1], [-fx[2], 0])
   const f2y = useTransform(f2t, [0, 1], [-fy[0], 0])
-
   const f3x = useTransform(f3t, [0, 1], [-fx[0], 0])
   const f3y = useTransform(f3t, [0, 1], [-fy[1], 0])
-
   const f4x = useTransform(f4t, [0, 1], [-fx[1], 0])
   const f4y = useTransform(f4t, [0, 1], [-fy[1], 0])
-
   const f5x = useTransform(f5t, [0, 1], [-fx[2], 0])
   const f5y = useTransform(f5t, [0, 1], [-fy[1], 0])
 
   return (
     <section
       ref={containerRef}
-      className="relative h-[500vh] bg-light-bg-primary dark:bg-dark-bg-primary"
+      className="relative h-[350vh] bg-light-bg-primary dark:bg-dark-bg-primary"
     >
       <div
         className="sticky top-0 h-screen w-full flex flex-col items-center justify-center pt-24 pb-12 overflow-hidden overflow-x-clip"
@@ -239,7 +215,7 @@ function ScrollSequence() {
         {/* ── Canvas ── */}
         <div className="relative w-full max-w-275 mx-auto mt-20 h-130 flex items-center justify-center" style={{ perspective: '1200px' }}>
 
-          {/* ─── Fake PPT deck (only visible at start, gone before cards spread) ─── */}
+          {/* ─── Fake PPT deck ─── */}
           <motion.div
             style={{ y: deckY, scale: deckScale, opacity: deckOpacity }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-dark-bg-surface border border-dark-text-muted/20 rounded-card overflow-hidden shadow-xl z-20 will-change-transform"
@@ -288,8 +264,7 @@ function ScrollSequence() {
             </div>
           </motion.div>
 
-          {/* ─── 3 Step cards ─────────────────────────────────────────────────── */}
-          {/* Card 1 exits left, Card 2 exits up, Card 3 exits right */}
+          {/* ─── 3 Step cards ─── */}
           {[
             { x: step1X, y: stepY, scale: stepScale, rotate: step1Rotate },
             { x: step2X, y: step2Y, scale: step2Scale, rotate: 0 },
@@ -324,7 +299,7 @@ function ScrollSequence() {
             </motion.div>
           ))}
 
-          {/* ─── 6 Feature cards (Start from CENTER then go to positions) ─────── */}
+          {/* ─── 6 Feature cards ─── */}
           <motion.div
             style={{
               opacity: featureOpacityAll,

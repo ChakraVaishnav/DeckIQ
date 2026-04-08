@@ -92,6 +92,26 @@
   color-scheme: dark;
 }
 
+/* Global thin black scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0f0f14 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #0f0f14;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* Theme showcase marquee */
 @keyframes marquee {
   0%   { transform: translateX(0); }

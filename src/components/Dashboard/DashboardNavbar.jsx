@@ -58,6 +58,12 @@ export default function DashboardNavbar({ onBuyCredits }) {
           >
             My Generations
           </Link>
+          <Link
+            href="/themes"
+            className="hidden sm:block text-sm text-light-text-muted dark:text-dark-text-muted hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors"
+          >
+            Themes
+          </Link>
 
           {user && <CreditsBadge credits={user.credits} onBuyMore={onBuyCredits} />}
 
