@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -99,97 +103,308 @@ const FEATURES = [
   },
 ]
 
-// Phase boundaries (tightened):
-// 0.00 – 0.10 : fake deck fades in
-// 0.10 – 0.22 : fake deck fades out, step cards spread in
-// 0.22 – 0.38 : step cards hold — "Three steps" heading visible
-// 0.38 – 0.50 : step cards exit, feature cards emerge — much faster than before
-// 0.50 – 1.00 : feature cards hold
+// Phase boundaries:
+// 0.00 – 0.12 : deck fades in 
+// 0.12 – 0.20 : deck exits (fade + scale)
+// 0.20 – 0.28 : "Three steps" heading fades in
+// 0.28 – 0.42 : Step 1 slides in from left
+// 0.42 – 0.56 : Step 2 slides in from bottom
+// 0.56 – 0.70 : Step 3 slides in from right
+// 0.70 – 0.80 : All 3 cards hold and showcase
+// 0.80 – 0.88 : All 3 cards exit together (scale + fade)
+// 0.88 – 0.94 : Features heading fades in
+// 0.94 – 1.00 : All 6 feature cards spawn with epic stagger + scale
 
 function ScrollSequence() {
   const containerRef = useRef(null)
+  const deckRef = useRef(null)
+  const step1Ref = useRef(null)
+  const step2Ref = useRef(null)
+  const step3Ref = useRef(null)
+  const stepsTitleRef = useRef(null)
+  const featuresTitleRef = useRef(null)
+  const featuresContainerRef = useRef(null)
+  const featureCardsRef = useRef([])
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end'],
-  })
+  useEffect(() => {
+    if (typeof window === 'undefined') return
 
-  // ── Fake deck ──────────────────────────────────────────────────────────────
-  const deckOpacity = useTransform(scrollYProgress, [0, 0.07, 0.16, 0.24], [0, 1, 1, 0])
-  const deckScale  = useTransform(scrollYProgress, [0, 0.07, 0.20, 0.24], [0.92, 1, 1, 0.85])
-  const deckY      = useTransform(scrollYProgress, [0, 0.07], [20, 0])
+    // Create ScrollTrigger timeline
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1.5,
+        markers: false,
+      },
+    })
 
-  // ── Section headings ──────────────────────────────────────────────────────
-  const stepsTitleOpacity = useTransform(scrollYProgress, [0.10, 0.18, 0.35, 0.42], [0, 1, 1, 0])
-  const stepsTitleY       = useTransform(scrollYProgress, [0.10, 0.18], [24, 0])
+    // ═════════════════════════════════════════════════════════════════════════════
+    // DECK ANIMATION (0.00 – 0.20)
+    // ═════════════════════════════════════════════════════════════════════════════
+    if (deckRef.current) {
+      // Fade in with scale
+      tl.fromTo(
+        deckRef.current,
+        {
+          opacity: 0,
+          scale: 0.8,
+          y: 50,
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          duration: 0.15,
+        },
+        0
+      )
 
-  const featuresTitleOpacity = useTransform(scrollYProgress, [0.44, 0.52], [0, 1])
-  const featuresTitleY       = useTransform(scrollYProgress, [0.44, 0.52], [24, 0])
+      // Hold
+      tl.to(
+        deckRef.current,
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.08,
+        },
+        0.15
+      )
 
-  // ── 3 Step cards ──────────────────────────────────────────────────────────
-  const stepOpacity = useTransform(scrollYProgress, [0.14, 0.22, 0.44, 0.50], [0, 1, 1, 0])
-  const stepY       = useTransform(scrollYProgress, [0.14, 0.22], [40, 0])
-  const stepScale   = useTransform(scrollYProgress, [0.14, 0.22], [0.5, 1.05])
+      // Exit: scale down and fade out with rotation
+      tl.to(
+        deckRef.current,
+        {
+          opacity: 0,
+          scale: 0.6,
+          y: -60,
+          rotateZ: -12,
+          duration: 0.12,
+        },
+        0.23
+      )
+    }
 
-  const step1X      = useTransform(scrollYProgress, [0.14, 0.26, 0.36, 0.46], [0, -380, -380, -1200])
-  const step1Rotate = useTransform(scrollYProgress, [0.14, 0.36, 0.46], [0, 0, -45])
+    // ═════════════════════════════════════════════════════════════════════════════
+    // STEPS TITLE (0.20 – 0.28)
+    // ═════════════════════════════════════════════════════════════════════════════
+    if (stepsTitleRef.current) {
+      tl.fromTo(
+        stepsTitleRef.current,
+        {
+          opacity: 0,
+          y: 30,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.1,
+        },
+        0.24
+      )
 
-  const step2X      = useTransform(scrollYProgress, [0.14, 0.26], [0, 0])
-  const step2Y      = useTransform(scrollYProgress, [0.14, 0.22, 0.36, 0.46], [40, 0, 0, -900])
-  const step2Scale  = useTransform(scrollYProgress, [0.14, 0.22, 0.36, 0.46], [0.82, 1, 1, 0.4])
+      // Fade out before features
+      tl.to(
+        stepsTitleRef.current,
+        { opacity: 0, y: -20, duration: 0.08 },
+        0.80
+      )
+    }
 
-  const step3X      = useTransform(scrollYProgress, [0.14, 0.26, 0.36, 0.46], [0, 380, 380, 1200])
-  const step3Rotate = useTransform(scrollYProgress, [0.14, 0.36, 0.46], [0, 0, 45])
+    // ═════════════════════════════════════════════════════════════════════════════
+    // STEP 1 - LEFT CARD (0.28 – 0.42)
+    // ═════════════════════════════════════════════════════════════════════════════
+    if (step1Ref.current) {
+      tl.fromTo(
+        step1Ref.current,
+        {
+          opacity: 0,
+          y: 100,
+          rotateZ: -25,
+          scale: 0.3,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          rotateZ: 0,
+          scale: 1,
+          duration: 0.18,
+          ease: 'back.out(1.7)',
+        },
+        0.28
+      )
 
-  // ── Feature cards — appear much faster now ────────────────────────────────
-  const featureOpacityAll = useTransform(scrollYProgress, [0.44, 0.50], [0.15, 1])
-  const featureScaleAll   = useTransform(scrollYProgress, [0.46, 0.52], [0.22, 1])
-  const featureT          = useTransform(scrollYProgress, [0.50, 0.56], [0, 1])  // full fan-out in just 6% scroll
+      // Hold
+      tl.to(
+        step1Ref.current,
+        {
+          opacity: 1,
+          duration: 0.14,
+        },
+        0.46
+      )
+    }
 
-  const clamp01  = (v) => Math.min(1, Math.max(0, v))
-  const staggerT = (v, index) => {
-    const start = index * 0.07  // tighter stagger per card
-    const end   = start + 0.40
-    return clamp01((v - start) / (end - start))
-  }
+    // ═════════════════════════════════════════════════════════════════════════════
+    // STEP 2 - CENTER CARD (0.42 – 0.56)
+    // ═════════════════════════════════════════════════════════════════════════════
+    if (step2Ref.current) {
+      tl.fromTo(
+        step2Ref.current,
+        {
+          opacity: 0,
+          y: 150,
+          scale: 0.2,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.2,
+          ease: 'back.out(1.8)',
+        },
+        0.42
+      )
 
-  const fx = [-360, 0, 360]
-  const fy = [-150, 150]
+      // Hold
+      tl.to(
+        step2Ref.current,
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.14,
+        },
+        0.62
+      )
+    }
 
-  const f0t = useTransform(featureT, (v) => staggerT(v, 0))
-  const f1t = useTransform(featureT, (v) => staggerT(v, 1))
-  const f2t = useTransform(featureT, (v) => staggerT(v, 2))
-  const f3t = useTransform(featureT, (v) => staggerT(v, 3))
-  const f4t = useTransform(featureT, (v) => staggerT(v, 4))
-  const f5t = useTransform(featureT, (v) => staggerT(v, 5))
+    // ═════════════════════════════════════════════════════════════════════════════
+    // STEP 3 - RIGHT CARD (0.56 – 0.70)
+    // ═════════════════════════════════════════════════════════════════════════════
+    if (step3Ref.current) {
+      tl.fromTo(
+        step3Ref.current,
+        {
+          opacity: 0,
+          y: 100,
+          rotateZ: 25,
+          scale: 0.3,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          rotateZ: 0,
+          scale: 1,
+          duration: 0.18,
+          ease: 'back.out(1.7)',
+        },
+        0.56
+      )
 
-  const f0x = useTransform(f0t, [0, 1], [-fx[0], 0])
-  const f0y = useTransform(f0t, [0, 1], [-fy[0], 0])
-  const f1x = useTransform(f1t, [0, 1], [-fx[1], 0])
-  const f1y = useTransform(f1t, [0, 1], [-fy[0], 0])
-  const f2x = useTransform(f2t, [0, 1], [-fx[2], 0])
-  const f2y = useTransform(f2t, [0, 1], [-fy[0], 0])
-  const f3x = useTransform(f3t, [0, 1], [-fx[0], 0])
-  const f3y = useTransform(f3t, [0, 1], [-fy[1], 0])
-  const f4x = useTransform(f4t, [0, 1], [-fx[1], 0])
-  const f4y = useTransform(f4t, [0, 1], [-fy[1], 0])
-  const f5x = useTransform(f5t, [0, 1], [-fx[2], 0])
-  const f5y = useTransform(f5t, [0, 1], [-fy[1], 0])
+      // Hold
+      tl.to(
+        step3Ref.current,
+        {
+          opacity: 1,
+          duration: 0.1,
+        },
+        0.74
+      )
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════════
+    // ALL 3 CARDS EXIT TOGETHER (0.80 – 0.88)
+    // ═════════════════════════════════════════════════════════════════════════════
+    if (step1Ref.current && step2Ref.current && step3Ref.current) {
+      tl.to(
+        [step1Ref.current, step2Ref.current, step3Ref.current],
+        {
+          opacity: 0,
+          scale: 0,
+          y: -200,
+          rotateZ: 30,
+          duration: 0.1,
+        },
+        0.80
+      )
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════════
+    // FEATURES TITLE (0.88 – 0.94)
+    // ═════════════════════════════════════════════════════════════════════════════
+    if (featuresTitleRef.current) {
+      tl.fromTo(
+        featuresTitleRef.current,
+        {
+          opacity: 0,
+          y: 40,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.1,
+        },
+        0.88
+      )
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════════
+    // ALL 6 FEATURE CARDS - EPIC ENTRANCE (0.94 – 1.00)
+    // ═════════════════════════════════════════════════════════════════════════════
+    if (featuresContainerRef.current) {
+      // Container entrance
+      tl.fromTo(
+        featuresContainerRef.current,
+        {
+          opacity: 0,
+        },
+        {
+          opacity: 1,
+          duration: 0.08,
+        },
+        0.92
+      )
+    }
+
+    if (featureCardsRef.current.length > 0) {
+      // Each card pops in one after another with stagger
+      featureCardsRef.current.forEach((card, index) => {
+        tl.fromTo(
+          card,
+          {
+            opacity: 0,
+            scale: 0,
+          },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.12,
+            ease: 'elastic.out(1.2, 0.6)',
+          },
+          0.94 + index * 0.08 // Stagger each card by 0.08
+        )
+      })
+    }
+
+    return () => {
+      tl.kill()
+    }
+  }, [])
 
   return (
     <section
       ref={containerRef}
-      className="relative h-[350vh] bg-light-bg-primary dark:bg-dark-bg-primary"
+      className="relative h-[400vh] bg-light-bg-primary dark:bg-dark-bg-primary"
     >
       <div
         className="sticky top-0 h-screen w-full flex flex-col items-center justify-center pt-24 pb-12 overflow-hidden overflow-x-clip"
         style={{ perspective: '1200px' }}
       >
-
         {/* ── "Three steps" heading ── */}
-        <motion.div
-          style={{ opacity: stepsTitleOpacity, y: stepsTitleY, position: 'absolute', top: '13%' }}
-          className="text-center px-6 w-full pointer-events-none"
+        <div
+          ref={stepsTitleRef}
+          className="text-center px-6 w-full pointer-events-none absolute top-[15%]"
         >
           <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
             Three steps to your perfect deck
@@ -197,12 +412,12 @@ function ScrollSequence() {
           <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-xl mx-auto">
             From idea to polished presentation in under a minute.
           </p>
-        </motion.div>
+        </div>
 
         {/* ── "Features" heading ── */}
-        <motion.div
-          style={{ opacity: featuresTitleOpacity, y: featuresTitleY, position: 'absolute', top: '10%' }}
-          className="text-center px-6 w-full pointer-events-none"
+        <div
+          ref={featuresTitleRef}
+          className="text-center px-6 w-full pointer-events-none absolute top-[12%]"
         >
           <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
             Features
@@ -210,15 +425,14 @@ function ScrollSequence() {
           <p className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-2xl mx-auto">
             Everything you need to present better
           </p>
-        </motion.div>
+        </div>
 
         {/* ── Canvas ── */}
         <div className="relative w-full max-w-275 mx-auto mt-20 h-130 flex items-center justify-center" style={{ perspective: '1200px' }}>
-
           {/* ─── Fake PPT deck ─── */}
-          <motion.div
-            style={{ y: deckY, scale: deckScale, opacity: deckOpacity }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-dark-bg-surface border border-dark-text-muted/20 rounded-card overflow-hidden shadow-xl z-20 will-change-transform"
+          <div
+            ref={deckRef}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-dark-bg-surface border border-dark-text-muted/20 rounded-card overflow-hidden shadow-xl z-40"
           >
             <div className="h-1.5 bg-accent-primary" />
             <div className="p-6">
@@ -262,89 +476,94 @@ function ScrollSequence() {
                 <div className="text-2xs text-dark-text-muted">2 / 10</div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* ─── 3 Step cards ─── */}
-          {[
-            { x: step1X, y: stepY, scale: stepScale, rotate: step1Rotate },
-            { x: step2X, y: step2Y, scale: step2Scale, rotate: 0 },
-            { x: step3X, y: stepY, scale: stepScale, rotate: step3Rotate },
-          ].map((mv, i) => (
-            <motion.div
-              key={STEPS[i].num}
-              style={{
-                x: mv.x,
-                y: mv.y,
-                scale: mv.scale,
-                opacity: stepOpacity,
-                rotate: mv.rotate,
-                position: 'absolute',
-                willChange: 'transform, opacity',
-                zIndex: 20,
-              }}
-              className="w-72 bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-6 shadow-xl origin-center"
-            >
-              <div className="absolute -bottom-4 -right-2 text-8xl font-medium text-accent-primary/8 dark:text-accent-primary/10 select-none leading-none pointer-events-none">
-                {STEPS[i].num}
-              </div>
-              <div className="w-10 h-10 rounded-component bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center mb-4">
-                <span className="text-accent-primary text-sm font-medium">{STEPS[i].num}</span>
-              </div>
-              <h3 className="text-md font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                {STEPS[i].title}
-              </h3>
-              <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                {STEPS[i].desc}
-              </p>
-            </motion.div>
-          ))}
+          {/* ─── Step 1 (Left) ─── */}
+          <div
+            ref={step1Ref}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-6 shadow-xl z-20"
+            style={{ marginLeft: '-420px' }}
+          >
+            <div className="absolute -bottom-4 -right-2 text-8xl font-medium text-accent-primary/8 dark:text-accent-primary/10 select-none leading-none pointer-events-none">
+              {STEPS[0].num}
+            </div>
+            <div className="w-10 h-10 rounded-component bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center mb-4">
+              <span className="text-accent-primary text-sm font-medium">{STEPS[0].num}</span>
+            </div>
+            <h3 className="text-md font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
+              {STEPS[0].title}
+            </h3>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+              {STEPS[0].desc}
+            </p>
+          </div>
 
-          {/* ─── 6 Feature cards ─── */}
-          <motion.div
-            style={{
-              opacity: featureOpacityAll,
-              position: 'absolute',
-              willChange: 'transform, opacity',
-              zIndex: 10,
-            }}
-            className="absolute inset-0 flex items-center justify-center"
+          {/* ─── Step 2 (Center) ─── */}
+          <div
+            ref={step2Ref}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-6 shadow-xl z-20"
+          >
+            <div className="absolute -bottom-4 -right-2 text-8xl font-medium text-accent-primary/8 dark:text-accent-primary/10 select-none leading-none pointer-events-none">
+              {STEPS[1].num}
+            </div>
+            <div className="w-10 h-10 rounded-component bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center mb-4">
+              <span className="text-accent-primary text-sm font-medium">{STEPS[1].num}</span>
+            </div>
+            <h3 className="text-md font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
+              {STEPS[1].title}
+            </h3>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+              {STEPS[1].desc}
+            </p>
+          </div>
+
+          {/* ─── Step 3 (Right) ─── */}
+          <div
+            ref={step3Ref}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 rounded-card p-6 shadow-xl z-20"
+            style={{ marginLeft: '420px' }}
+          >
+            <div className="absolute -bottom-4 -right-2 text-8xl font-medium text-accent-primary/8 dark:text-accent-primary/10 select-none leading-none pointer-events-none">
+              {STEPS[2].num}
+            </div>
+            <div className="w-10 h-10 rounded-component bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center mb-4">
+              <span className="text-accent-primary text-sm font-medium">{STEPS[2].num}</span>
+            </div>
+            <h3 className="text-md font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
+              {STEPS[2].title}
+            </h3>
+            <p className="text-sm text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+              {STEPS[2].desc}
+            </p>
+          </div>
+
+          {/* ─── Feature Cards Grid ─── */}
+          <div
+            ref={featuresContainerRef}
+            className="absolute inset-0 flex items-center justify-center w-full z-30"
           >
             <div className="grid grid-cols-3 gap-6 w-full max-w-240 px-4">
-              {FEATURES.map((f, i) => {
-                const mv =
-                  i === 0 ? { x: f0x, y: f0y } :
-                  i === 1 ? { x: f1x, y: f1y } :
-                  i === 2 ? { x: f2x, y: f2y } :
-                  i === 3 ? { x: f3x, y: f3y } :
-                  i === 4 ? { x: f4x, y: f4y } :
-                  { x: f5x, y: f5y }
-
-                return (
-                  <motion.div
-                    key={f.title}
-                    style={{
-                      x: mv.x,
-                      y: mv.y,
-                      scale: featureScaleAll,
-                      willChange: 'transform, opacity',
-                    }}
-                    className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 hover:border-accent-primary/30 rounded-card p-5 shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center text-accent-primary mb-4">
-                      {f.icon}
-                    </div>
-                    <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-1.5">
-                      {f.title}
-                    </h3>
-                    <p className="text-xs text-light-text-muted dark:text-dark-text-muted leading-relaxed">
-                      {f.desc}
-                    </p>
-                  </motion.div>
-                )
-              })}
+              {FEATURES.map((f, idx) => (
+                <div
+                  key={f.title}
+                  ref={(el) => {
+                    if (el) featureCardsRef.current[idx] = el
+                  }}
+                  className="group bg-light-bg-surface dark:bg-dark-bg-surface border border-light-text-muted/15 dark:border-dark-text-muted/15 hover:border-accent-primary/30 rounded-card p-5 shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <div className="w-10 h-10 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark flex items-center justify-center text-accent-primary mb-4">
+                    {f.icon}
+                  </div>
+                  <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-1.5">
+                    {f.title}
+                  </h3>
+                  <p className="text-xs text-light-text-muted dark:text-dark-text-muted leading-relaxed">
+                    {f.desc}
+                  </p>
+                </div>
+              ))}
             </div>
-          </motion.div>
-
+          </div>
         </div>
       </div>
     </section>
