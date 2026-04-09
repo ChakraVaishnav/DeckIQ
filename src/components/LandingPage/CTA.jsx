@@ -24,12 +24,9 @@ export default function CTA() {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto"
         >
-          <h2 className="text-4xl sm:text-5xl font-medium text-light-text-primary dark:text-dark-text-primary mb-4" style={{ lineHeight: 1.15 }}>
+          <h2 className="text-4xl sm:text-3xl font-medium text-light-text-primary dark:text-dark-text-primary mb-4" style={{ lineHeight: 1.15 }}>
             Your next great presentation starts here.
           </h2>
-          <p className="text-lg text-light-text-muted dark:text-dark-text-muted mb-8">
-            Join thousands generating smarter decks with DeckIQ.
-          </p>
           <Link
             href="/signup"
             className="inline-block bg-accent-primary hover:bg-indigo-600 text-white font-medium py-3.5 px-8 rounded-component transition-colors duration-150 text-base"
