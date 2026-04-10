@@ -104,20 +104,14 @@ const FEATURES = [
 ]
 
 // Phase boundaries:
-// 0.00 – 0.12 : deck fades in 
-// 0.12 – 0.20 : deck exits (fade + scale)
-// 0.20 – 0.28 : "Three steps" heading fades in
-// 0.28 – 0.42 : Step 1 slides in from left
-// 0.42 – 0.56 : Step 2 slides in from bottom
-// 0.56 – 0.70 : Step 3 slides in from right
-// 0.70 – 0.80 : All 3 cards hold and showcase
-// 0.80 – 0.88 : All 3 cards exit together (scale + fade)
-// 0.88 – 0.94 : Features heading fades in
-// 0.94 – 1.00 : All 6 feature cards spawn with epic stagger + scale
+// 0.00 – 0.30 : "Three steps" visible (no animation)
+// 0.30 – 0.50 : All 3 cards hold and showcase (no animation)
+// 0.50 – 0.60 : All 3 cards exit together (scale + fade)
+// 0.60 – 0.70 : Features heading fades in
+// 0.70 – 1.00 : All 6 feature cards spawn with epic stagger + scale
 
 function ScrollSequence() {
   const containerRef = useRef(null)
-  const deckRef = useRef(null)
   const step1Ref = useRef(null)
   const step2Ref = useRef(null)
   const step3Ref = useRef(null)
@@ -129,267 +123,95 @@ function ScrollSequence() {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    // Create ScrollTrigger timeline
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: 1.5,
+        scrub: 1.2,       // ← heavier scrub = feels slower and more deliberate
         markers: false,
       },
     })
 
-    // ═════════════════════════════════════════════════════════════════════════════
-    // DECK ANIMATION (0.00 – 0.20)
-    // ═════════════════════════════════════════════════════════════════════════════
-    if (deckRef.current) {
-      // Fade in with scale
-      tl.fromTo(
-        deckRef.current,
-        {
-          opacity: 0,
-          scale: 0.8,
-          y: 50,
-        },
-        {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          duration: 0.15,
-        },
-        0
-      )
-
-      // Hold
-      tl.to(
-        deckRef.current,
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.08,
-        },
-        0.15
-      )
-
-      // Exit: scale down and fade out with rotation
-      tl.to(
-        deckRef.current,
-        {
-          opacity: 0,
-          scale: 0.6,
-          y: -60,
-          rotateZ: -12,
-          duration: 0.12,
-        },
-        0.23
-      )
-    }
-
-    // ═════════════════════════════════════════════════════════════════════════════
-    // STEPS TITLE (0.20 – 0.28)
-    // ═════════════════════════════════════════════════════════════════════════════
+    // Steps visible from 0–0.30, set initial state
     if (stepsTitleRef.current) {
-      tl.fromTo(
-        stepsTitleRef.current,
-        {
-          opacity: 0,
-          y: 30,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.1,
-        },
-        0.24
-      )
-
-      // Fade out before features
-      tl.to(
-        stepsTitleRef.current,
-        { opacity: 0, y: -20, duration: 0.08 },
-        0.80
-      )
+      gsap.set(stepsTitleRef.current, { opacity: 1, y: 0 })
+      tl.to(stepsTitleRef.current, { opacity: 0, y: -30, duration: 0.1 }, 0.30)
     }
 
-    // ═════════════════════════════════════════════════════════════════════════════
-    // STEP 1 - LEFT CARD (0.28 – 0.42)
-    // ═════════════════════════════════════════════════════════════════════════════
     if (step1Ref.current) {
-      tl.fromTo(
-        step1Ref.current,
-        {
-          opacity: 0,
-          y: 100,
-          rotateZ: -25,
-          scale: 0.3,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          rotateZ: 0,
-          scale: 1,
-          duration: 0.18,
-          ease: 'back.out(1.7)',
-        },
-        0.28
-      )
+      gsap.set(step1Ref.current, { opacity: 1, x: 0, y: 0, rotateZ: 0, scale: 1 })
+      // Flies left + rotates
+      tl.to(step1Ref.current, {
+        opacity: 0, x: -220, y: -60, rotateZ: -25, scale: 0.7,
+        duration: 0.14, ease: 'power2.in',
+      }, 0.30)
+    }
 
-      // Hold
-      tl.to(
-        step1Ref.current,
-        {
-          opacity: 1,
-          duration: 0.14,
-        },
-        0.46
+    if (step2Ref.current) {
+      gsap.set(step2Ref.current, { opacity: 1, x: 0, y: 0, rotateX: 0, scale: 1 })
+      // Flips straight up (3D flip)
+      tl.to(step2Ref.current, {
+        opacity: 0, y: -240, rotateX: 45, scale: 0.8,
+        duration: 0.14, ease: 'power2.in',
+      }, 0.34)   // slight stagger
+    }
+
+    if (step3Ref.current) {
+      gsap.set(step3Ref.current, { opacity: 1, x: 0, y: 0, rotateZ: 0, scale: 1 })
+      // Flies right + rotates opposite
+      tl.to(step3Ref.current, {
+        opacity: 0, x: 220, y: -60, rotateZ: 25, scale: 0.7,
+        duration: 0.14, ease: 'power2.in',
+      }, 0.38)   // slight stagger
+    }
+
+    // Features title fades in slowly
+    if (featuresTitleRef.current) {
+      tl.fromTo(featuresTitleRef.current,
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 0.18 },
+        0.50
       )
     }
 
-    // ═════════════════════════════════════════════════════════════════════════════
-    // STEP 2 - CENTER CARD (0.42 – 0.56)
-    // ═════════════════════════════════════════════════════════════════════════════
-    if (step2Ref.current) {
-      tl.fromTo(
-        step2Ref.current,
-        {
-          opacity: 0,
-          y: 150,
-          scale: 0.2,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.2,
-          ease: 'back.out(1.8)',
-        },
-        0.42
-      )
-
-      // Hold
-      tl.to(
-        step2Ref.current,
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.14,
-        },
+    // Features container
+    if (featuresContainerRef.current) {
+      tl.fromTo(featuresContainerRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.08 },
         0.62
       )
     }
 
-    // ═════════════════════════════════════════════════════════════════════════════
-    // STEP 3 - RIGHT CARD (0.56 – 0.70)
-    // ═════════════════════════════════════════════════════════════════════════════
-    if (step3Ref.current) {
-      tl.fromTo(
-        step3Ref.current,
-        {
-          opacity: 0,
-          y: 100,
-          rotateZ: 25,
-          scale: 0.3,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          rotateZ: 0,
-          scale: 1,
-          duration: 0.18,
-          ease: 'back.out(1.7)',
-        },
-        0.56
-      )
-
-      // Hold
-      tl.to(
-        step3Ref.current,
-        {
-          opacity: 1,
-          duration: 0.1,
-        },
-        0.74
-      )
-    }
-
-    // ═════════════════════════════════════════════════════════════════════════════
-    // ALL 3 CARDS EXIT TOGETHER (0.80 – 0.88)
-    // ═════════════════════════════════════════════════════════════════════════════
-    if (step1Ref.current && step2Ref.current && step3Ref.current) {
-      tl.to(
-        [step1Ref.current, step2Ref.current, step3Ref.current],
-        {
-          opacity: 0,
-          scale: 0,
-          y: -200,
-          rotateZ: 30,
-          duration: 0.1,
-        },
-        0.80
-      )
-    }
-
-    // ═════════════════════════════════════════════════════════════════════════════
-    // FEATURES TITLE (0.88 – 0.94)
-    // ═════════════════════════════════════════════════════════════════════════════
-    if (featuresTitleRef.current) {
-      tl.fromTo(
-        featuresTitleRef.current,
-        {
-          opacity: 0,
-          y: 40,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.1,
-        },
-        0.88
-      )
-    }
-
-    // ═════════════════════════════════════════════════════════════════════════════
-    // ALL 6 FEATURE CARDS - EPIC ENTRANCE (0.94 – 1.00)
-    // ═════════════════════════════════════════════════════════════════════════════
-    if (featuresContainerRef.current) {
-      // Container entrance
-      tl.fromTo(
-        featuresContainerRef.current,
-        {
-          opacity: 0,
-        },
-        {
-          opacity: 1,
-          duration: 0.08,
-        },
-        0.92
-      )
-    }
-
+    // Feature cards: FLIP IN from rotateX (card-turning effect)
     if (featureCardsRef.current.length > 0) {
-      // Each card pops in one after another with stagger
       featureCardsRef.current.forEach((card, index) => {
-        tl.fromTo(
-          card,
+        tl.fromTo(card,
           {
             opacity: 0,
-            scale: 0,
+            rotateX: 65,          // ← starts face-down, flips toward viewer
+            y: 30,
+            scale: 0.75,
+            transformOrigin: 'center top',
+            transformPerspective: 600,
           },
           {
             opacity: 1,
+            rotateX: 0,
+            y: 0,
             scale: 1,
-            duration: 0.12,
-            ease: 'elastic.out(1.2, 0.6)',
+            duration: 0.22,       // ← slow and satisfying
+            ease: 'power3.out',
+            transformOrigin: 'center top',
+            transformPerspective: 600,
           },
-          0.94 + index * 0.08 // Stagger each card by 0.08
+          0.65 + index * 0.10    // ← 0.10 stagger between each card
         )
       })
     }
 
-    return () => {
-      tl.kill()
-    }
+    return () => { tl.kill() }
   }, [])
 
   return (
@@ -398,13 +220,13 @@ function ScrollSequence() {
       className="relative h-[400vh] bg-light-bg-primary dark:bg-dark-bg-primary"
     >
       <div
-        className="sticky top-0 h-screen w-full flex flex-col items-center justify-center pt-24 pb-12 overflow-hidden overflow-x-clip"
+        className="sticky top-0 h-screen w-full flex flex-col items-center justify-center pt-32 pb-12 overflow-hidden overflow-x-clip"
         style={{ perspective: '1200px' }}
       >
         {/* ── "Three steps" heading ── */}
         <div
           ref={stepsTitleRef}
-          className="text-center px-6 w-full pointer-events-none absolute top-[15%]"
+          className="text-center px-6 w-full pointer-events-none absolute top-[20%]"
         >
           <h2 className="text-3xl sm:text-4xl font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
             Three steps to your perfect deck
@@ -428,56 +250,7 @@ function ScrollSequence() {
         </div>
 
         {/* ── Canvas ── */}
-        <div className="relative w-full max-w-275 mx-auto mt-20 h-130 flex items-center justify-center" style={{ perspective: '1200px' }}>
-          {/* ─── Fake PPT deck ─── */}
-          <div
-            ref={deckRef}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-dark-bg-surface border border-dark-text-muted/20 rounded-card overflow-hidden shadow-xl z-40"
-          >
-            <div className="h-1.5 bg-accent-primary" />
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-8 h-8 rounded bg-accent-primary/20 flex items-center justify-center">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B4CF5" strokeWidth="2.5">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-white text-sm font-medium">The Future of Climate Technology</div>
-                  <div className="text-dark-text-muted text-xs mt-0.5">Generated by DeckIQ</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="space-y-2">
-                  {['Renewable innovation', 'Carbon capture tech', 'Smart grid systems'].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-accent-primary shrink-0" />
-                      <div className="text-xs text-dark-text-muted">{item}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="bg-dark-bg-elevated rounded-component p-3">
-                  <div className="flex items-end gap-1 h-12">
-                    {[40, 65, 45, 80, 70, 90, 75].map((h, i) => (
-                      <div key={i} className="flex-1 bg-accent-primary/60 rounded-sm" style={{ height: `${h}%` }} />
-                    ))}
-                  </div>
-                  <div className="text-2xs text-dark-text-muted mt-1 text-center">Growth 2020–2026</div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between border-t border-dark-text-muted/10 pt-3">
-                <div className="flex gap-2">
-                  {['Dark Tech', '10 slides'].map((tag, i) => (
-                    <span key={i} className={`text-xs px-2 py-0.5 rounded-full ${i === 0 ? 'bg-accent-primary/20 text-accent-primary' : 'bg-dark-bg-elevated text-dark-text-muted'}`}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="text-2xs text-dark-text-muted">2 / 10</div>
-              </div>
-            </div>
-          </div>
-
+        <div className="relative w-full max-w-275 mx-auto mt-8 h-100 flex items-center justify-center" style={{ perspective: '1200px' }}>
           {/* ─── Step 1 (Left) ─── */}
           <div
             ref={step1Ref}
@@ -655,62 +428,120 @@ export default function Hero() {
 
   return (
     <>
-      <section className="relative pt-32 pb-32 bg-light-bg-primary dark:bg-dark-bg-primary overflow-x-hidden">
-        <div className="relative w-full px-6 sm:px-10 lg:px-16 flex flex-col items-center mt-8">
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-col items-center text-center"
-          >
-            <motion.div variants={fadeUp}>
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark border border-accent-primary/20 text-accent-primary text-xs font-medium mb-8">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse" />
-                AI-Powered Presentations
-              </span>
+      {/* Hero Section with 2-Column Layout */}
+      <section className="relative pt-40 pb-32 bg-light-bg-primary dark:bg-dark-bg-primary overflow-x-hidden">
+        <div className="relative w-full px-6 sm:px-10 lg:px-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
+            {/* Left Column - Text Content */}
+            <motion.div
+              variants={stagger}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col justify-center"
+            >
+              <motion.div variants={fadeUp}>
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-subtle-light dark:bg-accent-subtle-dark border border-accent-primary/20 text-accent-primary text-xs font-medium mb-6 w-fit">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse" />
+                  AI-Powered Presentations
+                </span>
+              </motion.div>
+
+              <motion.h1
+                variants={fadeUp}
+                className="text-4xl sm:text-5xl font-medium text-light-text-primary dark:text-dark-text-primary leading-tight mb-6"
+              >
+                Create Stunning Decks,
+                <br />
+                <span className="text-accent-primary">Powered by Intelligence.</span>
+              </motion.h1>
+
+              <motion.p
+                variants={fadeUp}
+                className="text-lg text-light-text-muted dark:text-dark-text-muted mb-8 leading-relaxed"
+              >
+                Pick a topic. Choose a theme. DeckIQ researches, designs, and builds
+                your presentation — in seconds.
+              </motion.p>
+
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-start gap-3 mb-6">
+                <Link
+                  href="/signup"
+                  className="bg-accent-primary hover:bg-indigo-600 text-white font-medium py-3 px-7 rounded-component transition-colors duration-150 text-sm whitespace-nowrap"
+                >
+                  Generate Your First Deck →
+                </Link>
+                <button
+                  onClick={() => {
+                    document.querySelector('#how-it-works')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                  className="border border-light-text-muted/30 dark:border-dark-text-muted/30 hover:bg-light-bg-elevated dark:hover:bg-dark-bg-elevated text-light-text-primary dark:text-dark-text-primary py-3 px-7 rounded-component transition-colors duration-150 text-sm whitespace-nowrap"
+                >
+                  See How It Works
+                </button>
+              </motion.div>
+
+              <motion.p variants={fadeUp} className="text-sm font-medium text-accent-primary">
+                🎉 Limited Offer: 100 FREE credits for new users (valid until end of April)
+              </motion.p>
             </motion.div>
 
-            <motion.h1
-              variants={fadeUp}
-              className="text-4xl sm:text-5xl lg:text-hero font-medium text-light-text-primary dark:text-dark-text-primary leading-tight max-w-4xl mb-6 relative z-10"
-              style={{ lineHeight: 1.15 }}
+            {/* Right Column - Fake Deck */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="flex items-center justify-center"
             >
-              Create Stunning Decks,
-              <br />
-              <span className="text-accent-primary">Powered by Intelligence.</span>
-            </motion.h1>
-
-            <motion.p
-              variants={fadeUp}
-              className="text-lg text-light-text-muted dark:text-dark-text-muted max-w-xl mb-8 leading-relaxed relative z-10"
-            >
-              Pick a topic. Choose a theme. DeckIQ researches, designs, and builds
-              your presentation — in seconds.
-            </motion.p>
-
-            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-3 mb-4 relative z-10">
-              <Link
-                href="/signup"
-                className="bg-accent-primary hover:bg-indigo-600 text-white font-medium py-3 px-7 rounded-component transition-colors duration-150 text-sm whitespace-nowrap"
-              >
-                Generate Your First Deck →
-              </Link>
-              <button
-                onClick={() => {
-                  document.querySelector('#how-it-works')?.scrollIntoView({ behavior: 'smooth' })
-                }}
-                className="border border-light-text-muted/30 dark:border-dark-text-muted/30 hover:bg-light-bg-elevated dark:hover:bg-dark-bg-elevated text-light-text-primary dark:text-dark-text-primary py-3 px-7 rounded-component transition-colors duration-150 text-sm whitespace-nowrap"
-              >
-                See How It Works
-              </button>
+              <div className="w-full max-w-md bg-dark-bg-surface border border-dark-text-muted/20 rounded-card overflow-hidden shadow-xl">
+                <div className="h-1.5 bg-accent-primary" />
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-8 h-8 rounded bg-accent-primary/20 flex items-center justify-center">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B4CF5" strokeWidth="2.5">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-white text-sm font-medium">The Future of Climate Technology</div>
+                      <div className="text-dark-text-muted text-xs mt-0.5">Generated by DeckIQ</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-2">
+                      {['Renewable innovation', 'Carbon capture tech', 'Smart grid systems'].map((item, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent-primary shrink-0" />
+                          <div className="text-xs text-dark-text-muted">{item}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-dark-bg-elevated rounded-component p-3">
+                      <div className="flex items-end gap-1 h-12">
+                        {[40, 65, 45, 80, 70, 90, 75].map((h, i) => (
+                          <div key={i} className="flex-1 bg-accent-primary/60 rounded-sm" style={{ height: `${h}%` }} />
+                        ))}
+                      </div>
+                      <div className="text-2xs text-dark-text-muted mt-1 text-center">Growth 2020–2026</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-dark-text-muted/10 pt-3">
+                    <div className="flex gap-2">
+                      {['Dark Tech', '10 slides'].map((tag, i) => (
+                        <span key={i} className={`text-xs px-2 py-0.5 rounded-full ${i === 0 ? 'bg-accent-primary/20 text-accent-primary' : 'bg-dark-bg-elevated text-dark-text-muted'}`}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-2xs text-dark-text-muted">2 / 10</div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
-
-            <motion.p variants={fadeUp} className="text-sm font-medium text-accent-primary mb-12 relative z-10">
-              🎉 Limited Offer: 100 FREE credits for new users (valid until end of April)
-            </motion.p>
-          </motion.div>
+          </div>
         </div>
       </section>
+
+      {/* Scroll Sequence or Static Version */}
       {isMobile ? <StaticHowItWorks /> : <ScrollSequence />}
     </>
   )
